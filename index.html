@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=430, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>STEP III · The Ascent</title>
+<style>
+  :root {
+    --bg: #050810;
+    --bg-1: #0a0f1e;
+    --bg-2: #111729;
+    --bg-3: #1a2138;
+    --border: #243049;
+    --border-strong: #2f3d5c;
+    --border-glow: #3d5288;
+    --text: #e8edf7;
+    --text-dim: #8a96b0;
+    --text-muted: #5c6680;
+    --accent: #d4af37;
+    --accent-bright: #f4cf57;
+    --accent-dim: #8a7220;
+    --accent-glow: rgba(212, 175, 55, 0.5);
+    --xp: #60a5fa;
+    --xp-glow: rgba(96, 165, 250, 0.5);
+    --success: #4ade80;
+    --success-glow: rgba(74, 222, 128, 0.5);
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --info: #60a5fa;
+    --boss: #a855f7;
+    --boss-glow: rgba(168, 85, 247, 0.6);
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Iowan Old Style', 'Palatino', 'Times New Roman', serif;
+    font-size: 16px;
+    line-height: 1.5;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    padding-top: var(--safe-top);
+    padding-bottom: calc(var(--safe-bottom) + 80px);
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(212, 175, 55, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 0% 30%, rgba(96, 165, 250, 0.04) 0%, transparent 50%),
+      linear-gradient(180deg, #050810 0%, #020409 100%);
+    background-attachment: fixed;
+  }
+
+  /* Animated grid backdrop */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(212, 175, 55, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212, 175, 55, 0.025) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse at center, black 0%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 80%);
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===========================================
+     HEADER — Hunter Status Window
+     =========================================== */
+  .header {
+    padding: 20px 20px 0;
+    position: relative;
+  }
+
+  .system-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .system-tag::before {
+    content: '◆';
+    color: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .title {
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #f4cf57 0%, #d4af37 50%, #8a7220 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .title-sub {
+    font-style: italic;
+    font-family: 'Iowan Old Style', serif;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  /* ---------- HUNTER STATS BLOCK ---------- */
+  .hunter-block {
+    background: linear-gradient(135deg, rgba(26, 33, 56, 0.95), rgba(10, 15, 30, 0.95));
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 0 20px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hunter-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .hunter-block::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+  }
+
+  .hunter-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .rank-badge {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Iowan Old Style', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--bg);
+    font-style: italic;
+    position: relative;
+    box-shadow:
+      0 0 20px var(--accent-glow),
+      inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+
+  .rank-badge::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent-bright), transparent, var(--accent-dim));
+    z-index: -1;
+  }
+
+  .hunter-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hunter-name {
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .hunter-class {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .level-block {
+    text-align: right;
+  }
+
+  .level-num {
+    font-size: 28px;
+    color: var(--accent);
+    font-style: italic;
+    line-height: 1;
+    font-weight: 300;
+  }
+
+  .level-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* XP bar */
+  .xp-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .xp-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--xp);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .xp-num {
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .xp-num em {
+    color: var(--xp);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .xp-bar {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #60a5fa, #93c5fd);
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 12px var(--xp-glow);
+    position: relative;
+  }
+
+  .xp-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 30px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+    border-radius: 4px;
+  }
+
+  /* Stats triplet */
+  .stats-triplet {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-cell {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 18px;
+    color: var(--text);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .stat-num.gold { color: var(--accent); }
+  .stat-num.green { color: var(--success); }
+  .stat-num.red { color: var(--danger); }
+  .stat-num.amber { color: var(--warn); }
+
+  .stat-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ===========================================
+     BOSS COUNTDOWN BANNER (NBMEs / Test)
+     =========================================== */
+  .boss-banner {
+    margin: 0 20px 16px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05));
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    animation: bossGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes bossGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+    50% { box-shadow: 0 0 30px rgba(168, 85, 247, 0.4); }
+  }
+
+  .boss-banner.test {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(239, 68, 68, 0.08));
+    border-color: rgba(212, 175, 55, 0.5);
+    animation: testGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes testGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.5); }
+  }
+
+  .boss-eyebrow {
+    font-family: 'SF Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--boss);
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .boss-banner.test .boss-eyebrow { color: var(--accent); }
+
+  .boss-eyebrow::before {
+    content: '⚔';
+    font-size: 12px;
+  }
+
+  .boss-banner.test .boss-eyebrow::before { content: '★'; }
+
+  .boss-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .boss-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .boss-name em {
+    font-style: italic;
+    color: var(--boss);
+  }
+
+  .boss-banner.test .boss-name em { color: var(--accent); }
+
+  .boss-meta {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .boss-countdown {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .boss-days {
+    font-size: 28px;
+    font-style: italic;
+    line-height: 1;
+    color: var(--boss);
+    font-weight: 300;
+  }
+
+  .boss-banner.test .boss-days { color: var(--accent); }
+
+  .boss-days-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ===========================================
+     SECTION TABS (Today / Plan / Stats)
+     =========================================== */
+  .main-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    margin: 0 20px 0;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .main-tab {
+    padding: 10px;
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 44px;
+    font-weight: 600;
+  }
+
+  .main-tab.active {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05));
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.3);
+  }
+
+  /* ===========================================
+     TODAY SECTION
+     =========================================== */
+  .panel {
+    display: none;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .today-header {
+    margin-bottom: 16px;
+  }
+
+  .today-eyebrow {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .today-date {
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.1;
+  }
+
+  .today-date em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .today-meta {
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Quick action buttons */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .qa-btn {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    text-align: left;
+    min-height: 44px;
+    transition: all 0.2s;
+  }
+
+  .qa-btn:active {
+    transform: scale(0.97);
+    background: var(--bg-3);
+  }
+
+  .qa-btn-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .qa-btn-action {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .qa-btn-action em {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 24px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+
+  .section-label:first-child { margin-top: 0; }
+
+  .section-label .count {
+    margin-left: auto;
+    color: var(--text-dim);
+    font-weight: 400;
+    font-size: 9px;
+  }
+
+  /* TASK CARDS */
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    min-height: 44px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .task:active {
+    transform: scale(0.99);
+  }
+
+  .task.done {
+    background: var(--bg-1);
+    opacity: 0.55;
+  }
+
+  .task.done .task-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 0.2s;
+    background: var(--bg-3);
+  }
+
+  .task.done .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .checkbox::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid var(--bg);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) scale(0);
+    margin-top: -2px;
+    transition: transform 0.2s;
+  }
+
+  .task.done .checkbox::after {
+    transform: rotate(45deg) scale(1);
+  }
+
+  .task-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .task-text {
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .task-meta {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .xp-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    background: rgba(96, 165, 250, 0.15);
+    color: var(--xp);
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+  }
+
+  .task.priority {
+    border-left: 3px solid var(--accent);
+  }
+
+  .task.assessment {
+    border-left: 3px solid var(--boss);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), var(--bg-2));
+  }
+
+  .task.assessment .task-meta { color: var(--boss); }
+
+  .task.boss {
+    border-left: 3px solid var(--accent);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), var(--bg-2));
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .empty-state-icon {
+    font-size: 32px;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  /* Tomorrow preview */
+  .tomorrow-section {
+    margin-top: 32px;
+    padding: 16px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-left: 3px solid var(--text-dim);
+  }
+
+  .tomorrow-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .tomorrow-preview-task {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tomorrow-preview-task:last-child { border-bottom: none; }
+
+  /* ===========================================
+     PLAN PANEL — Week Cards
+     =========================================== */
+  .week-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .week-card.current {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+  }
+
+  .week-card.past {
+    opacity: 0.55;
+  }
+
+  .week-card-header {
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    transition: background 0.2s;
+  }
+
+  .week-card-header:active {
+    background: var(--bg-3);
+  }
+
+  .week-num-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Iowan Old Style', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .week-card.current .week-num-badge {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+    color: var(--bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .week-card.completed .week-num-badge {
+    background: var(--success);
+    color: var(--bg);
+    border-color: var(--success);
+  }
+
+  .week-card.completed .week-num-badge::before {
+    content: '✓';
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  .week-card.completed .week-num-badge .num-text {
+    display: none;
+  }
+
+  .week-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .week-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .week-card-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .week-card.past .week-card-title em { color: var(--text-dim); }
+
+  .week-card-dates {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .week-card-progress {
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .week-card-pct {
+    font-size: 13px;
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  .week-card.past .week-card-pct { color: var(--text-dim); }
+
+  .week-card-pct-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .week-card-body {
+    display: none;
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .week-card.expanded .week-card-body {
+    display: block;
+  }
+
+  .week-card.expanded .week-card-header {
+    padding-bottom: 12px;
+  }
+
+  /* Week info pill */
+  .week-pills {
+    display: flex;
+    gap: 6px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+
+  .week-pill {
+    padding: 4px 10px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .week-pill.gold {
+    border-color: rgba(212, 175, 55, 0.4);
+    color: var(--accent);
+    background: rgba(212, 175, 55, 0.05);
+  }
+
+  /* Sub-section in expanded week */
+  .sub-section {
+    margin-top: 14px;
+  }
+
+  .sub-section-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  /* Day group inside week */
+  .day-group {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+  }
+
+  .day-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .day-group-name {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .day-group-date {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+
+  .day-task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    cursor: pointer;
+    min-height: 36px;
+  }
+
+  .day-task .checkbox {
+    width: 18px;
+    height: 18px;
+  }
+
+  .day-task .checkbox::after {
+    width: 4px;
+    height: 7px;
+  }
+
+  .day-task .task-text {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .day-task .task-meta {
+    font-size: 9px;
+  }
+
+  .day-task.done .task-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  .day-task.done .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* Note boxes in expanded weeks */
+  .note-box {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02));
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+  }
+
+  .note-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
+  .note-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .note-box.warn {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.02));
+    border-color: rgba(245, 158, 11, 0.25);
+    border-left-color: var(--warn);
+  }
+
+  .note-box.warn .note-label { color: var(--warn); }
+
+  .note-box.info {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(96, 165, 250, 0.02));
+    border-color: rgba(96, 165, 250, 0.25);
+    border-left-color: var(--info);
+  }
+
+  .note-box.info .note-label { color: var(--info); }
+
+  /* ===========================================
+     STATS PANEL
+     =========================================== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .stat-card.xp::before { background: var(--xp); }
+  .stat-card.green::before { background: var(--success); }
+  .stat-card.warn::before { background: var(--warn); }
+  .stat-card.danger::before { background: var(--danger); }
+
+  .stat-card-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .stat-card-value {
+    font-size: 24px;
+    color: var(--text);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .stat-card-value.gold { color: var(--accent); }
+  .stat-card-value.xp-color { color: var(--xp); }
+  .stat-card-value.green { color: var(--success); }
+  .stat-card-value.warn { color: var(--warn); }
+  .stat-card-value.danger { color: var(--danger); }
+
+  .stat-card-sub {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Pace gauge */
+  .pace-gauge {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .pace-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .pace-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .pace-value {
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .pace-bar {
+    height: 10px;
+    background: var(--bg);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+    margin-bottom: 6px;
+  }
+
+  .pace-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent), var(--accent-bright));
+    border-radius: 5px;
+    transition: width 0.6s ease;
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .pace-fill.behind { background: linear-gradient(90deg, #b45309, var(--warn)); box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+  .pace-fill.danger { background: linear-gradient(90deg, #991b1b, var(--danger)); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+  .pace-fill.green { background: linear-gradient(90deg, #15803d, var(--success)); box-shadow: 0 0 8px var(--success-glow); }
+
+  .pace-marker {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* Counter widget for QBank/CCS */
+  .counter-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .counter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .counter-title {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .counter-progress {
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .counter-progress em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .counter-bar {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .counter-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .counter-bar-fill.qb {
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+    box-shadow: 0 0 8px var(--xp-glow);
+  }
+
+  .counter-bar-fill.ccs {
+    background: linear-gradient(90deg, #7c3aed, #a78bfa);
+    box-shadow: 0 0 8px var(--boss-glow);
+  }
+
+  .counter-buttons {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+
+  .counter-btn {
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-3);
+    color: var(--text);
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 44px;
+    transition: all 0.15s;
+  }
+
+  .counter-btn:active {
+    transform: scale(0.95);
+    background: var(--accent-dim);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .counter-btn.minus {
+    color: var(--text-dim);
+  }
+
+  /* Reset button */
+  .reset-row {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    min-height: 44px;
+    margin: 0 4px;
+  }
+
+  .reset-btn:active {
+    background: var(--bg-3);
+  }
+
+  .reset-btn.danger {
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-3);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    box-shadow: 0 0 20px var(--accent-glow);
+    white-space: nowrap;
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+  }
+
+  .toast .xp-gain {
+    color: var(--xp);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="system-tag">USMLE · Step III · Hunter Protocol</div>
+  <h1 class="title">The <em>Ascent</em></h1>
+  <div class="title-sub" id="dateString">— · — · —</div>
+</div>
+
+<!-- ===== HUNTER STATUS ===== -->
+<div class="hunter-block">
+  <div class="hunter-row">
+    <div class="rank-badge" id="rankBadge">E</div>
+    <div class="hunter-info">
+      <div class="hunter-name">Jerry Zaidi, MD</div>
+      <div class="hunter-class" id="hunterClass">PGY-2 · Internal Medicine</div>
+    </div>
+    <div class="level-block">
+      <div class="level-num" id="levelNum">1</div>
+      <div class="level-label">Level</div>
+    </div>
+  </div>
+
+  <div class="xp-row">
+    <div class="xp-label">⬢ Experience</div>
+    <div class="xp-num"><em id="xpCurrent">0</em> / <span id="xpMax">100</span> XP</div>
+  </div>
+  <div class="xp-bar">
+    <div class="xp-fill" id="xpFill" style="width: 0%"></div>
+  </div>
+
+  <div class="stats-triplet">
+    <div class="stat-cell">
+      <div class="stat-num gold" id="stat-streak">0</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num" id="stat-tasks">0</div>
+      <div class="stat-label">Tasks Done</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num" id="stat-pct">0%</div>
+      <div class="stat-label">Plan Progress</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BOSS BANNER ===== -->
+<div id="bossBanner"></div>
+
+<!-- ===== MAIN TABS ===== -->
+<div class="main-tabs">
+  <button class="main-tab active" onclick="switchTab('today')">Today</button>
+  <button class="main-tab" onclick="switchTab('plan')">9-Wk Plan</button>
+  <button class="main-tab" onclick="switchTab('stats')">Stats</button>
+</div>
+
+<!-- ===== TODAY PANEL ===== -->
+<div class="panel active" id="panel-today">
+  <div class="today-header">
+    <div class="today-eyebrow" id="todayEyebrow">— Today —</div>
+    <div class="today-date" id="todayDate">—</div>
+    <div class="today-meta" id="todayMeta">—</div>
+  </div>
+
+  <div class="quick-actions">
+    <button class="qa-btn" onclick="quickQbank()">
+      <div class="qa-btn-label">+ Add Qs</div>
+      <div class="qa-btn-action">Logged <em>+25</em> UWorld</div>
+    </button>
+    <button class="qa-btn" onclick="quickCCS()">
+      <div class="qa-btn-label">+ CCS Case</div>
+      <div class="qa-btn-action">Logged <em>+1</em> case</div>
+    </button>
+  </div>
+
+  <div id="todayTasks"></div>
+
+  <div class="tomorrow-section" id="tomorrowSection">
+    <div class="tomorrow-label">⤳ Tomorrow Preview</div>
+    <div id="tomorrowTasks"></div>
+  </div>
+</div>
+
+<!-- ===== PLAN PANEL ===== -->
+<div class="panel" id="panel-plan">
+  <div id="planContent"></div>
+</div>
+
+<!-- ===== STATS PANEL ===== -->
+<div class="panel" id="panel-stats">
+  <div id="statsContent"></div>
+
+  <div class="reset-row">
+    <button class="reset-btn" onclick="resetCurrentWeek()">Reset Current Week</button>
+    <button class="reset-btn danger" onclick="resetAll()">Reset All Data</button>
+  </div>
+</div>
+
+</div>
+
+<div class="toast" id="toast">+10 XP</div>
+
+<script>
+// ===========================================
+// CONFIG & DATA
+// ===========================================
+const TEST_DATE = new Date('2026-06-27T08:00:00');
+const TEST_DATE_2 = new Date('2026-06-30T08:00:00');
+const PLAN_START = new Date('2026-04-29T00:00:00');
+const STORAGE_KEY = 'step3_tracker_v2';
+
+// XP per task type
+const XP_TASK = 10;
+const XP_PRIORITY = 25;
+const XP_ASSESSMENT = 100;
+const XP_DAY_COMPLETE = 50;
+
+// Rank thresholds (% complete)
+const RANKS = [
+  { letter: 'E', min: 0, label: 'Recruit' },
+  { letter: 'D', min: 12, label: 'Trainee' },
+  { letter: 'C', min: 25, label: 'Apprentice' },
+  { letter: 'B', min: 40, label: 'Journeyman' },
+  { letter: 'A', min: 55, label: 'Specialist' },
+  { letter: 'S', min: 70, label: 'Master' },
+  { letter: 'S+', min: 85, label: 'Grandmaster' },
+  { letter: 'SSS', min: 95, label: 'Sovereign' }
+];
+
+// Helpers for date manipulation
+function dateAdd(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function dateKey(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function dateFmt(d, fmt) {
+  const opts = {
+    short: { month: 'short', day: 'numeric' },
+    long: { weekday: 'long', month: 'long', day: 'numeric' },
+    weekday: { weekday: 'long' },
+    weekdayShort: { weekday: 'short' }
+  };
+  return d.toLocaleDateString('en-US', opts[fmt]);
+}
+
+// ===========================================
+// PLAN STRUCTURE - Day-by-day
+// Week 1: Wed Apr 29 - Sun May 3 (5 days, partial)
+// Week 2: Mon May 4 - Sun May 10
+// ... etc
+// ===========================================
+
+function makeWeek(n, start, end, title, rotation, dailyQ, weeklyQ, dayPlans, notes) {
+  return { n, start, end, title, rotation, dailyQ, weeklyQ, dayPlans, notes };
+}
+
+// Day plan helper: type can be 'study', 'rest', 'assessment', 'test', 'recovery'
+function day(dateStr, label, type, tasks) {
+  return { date: dateStr, label, type, tasks };
+}
+
+const WEEKS = [
+  // ============ WEEK 1: Apr 29 (Wed) - May 3 (Sun) ============
+  {
+    n: 1, title: "Awakening",
+    start: '2026-04-29', end: '2026-05-03',
+    rotation: 'Wards · Week 1 of 3',
+    dailyQ: '20–25', weeklyQ: '~110 Qs (partial week)',
+    dayPlans: [
+      day('2026-04-29', 'Wed', 'study', [
+        { id: 'd_2026-04-29_1', text: '20 UWorld Qs (random, tutored)', meta: '~75 min', xp: 25 },
+        { id: 'd_2026-04-29_2', text: 'Review all Qs (correct + incorrect)', xp: 10 },
+        { id: 'd_2026-04-29_3', text: 'Schedule NBME Free 120 for May 9–10', meta: 'PRIORITY · do this today', xp: 25, priority: true }
+      ]),
+      day('2026-04-30', 'Thu', 'study', [
+        { id: 'd_2026-04-30_1', text: '25 UWorld Qs', meta: '~90 min', xp: 25 },
+        { id: 'd_2026-04-30_2', text: 'Review all Qs', xp: 10 }
+      ]),
+      day('2026-05-01', 'Fri', 'study', [
+        { id: 'd_2026-05-01_1', text: '20 UWorld Qs OR rest if post-call', xp: 20 },
+        { id: 'd_2026-05-01_2', text: 'Light review', xp: 10 }
+      ]),
+      day('2026-05-02', 'Sat', 'study', [
+        { id: 'd_2026-05-02_1', text: '30 UWorld Qs (longer block)', meta: '~2 hr', xp: 30 },
+        { id: 'd_2026-05-02_2', text: '1 hr Biostats subject review', xp: 25 }
+      ]),
+      day('2026-05-03', 'Sun', 'rest', [
+        { id: 'd_2026-05-03_1', text: 'Rest OR catch-up Qs (max 25)', xp: 15 },
+        { id: 'd_2026-05-03_2', text: 'Optional: 1 Divine Intervention podcast', meta: 'Episode 14 or 67', xp: 10 }
+      ])
+    ],
+    notes: [
+      { type: 'info', label: 'Mode setting', text: 'Use Random + Tutored + Timed (1 min/Q). Random > systems-based for Step 3 because the real exam mixes everything.' },
+      { type: 'warn', label: 'First action today', text: 'Schedule the NBME Free 120 for next weekend (May 9 or 10). Do this BEFORE you start studying tonight.' }
+    ]
+  },
+
+  // ============ WEEK 2: May 4 - May 10 ============
+  {
+    n: 2, title: "First Trial",
+    start: '2026-05-04', end: '2026-05-10',
+    rotation: 'Wards · Week 2 of 3',
+    dailyQ: '20–25', weeklyQ: '~150 Qs',
+    dayPlans: [
+      day('2026-05-04', 'Mon', 'study', [
+        { id: 'd_2026-05-04_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-04_2', text: 'Review', xp: 10 }
+      ]),
+      day('2026-05-05', 'Tue', 'study', [
+        { id: 'd_2026-05-05_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-05_2', text: 'Review', xp: 10 }
+      ]),
+      day('2026-05-06', 'Wed', 'study', [
+        { id: 'd_2026-05-06_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-06_2', text: 'Review', xp: 10 }
+      ]),
+      day('2026-05-07', 'Thu', 'study', [
+        { id: 'd_2026-05-07_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-07_2', text: 'Review', xp: 10 }
+      ]),
+      day('2026-05-08', 'Fri', 'rest', [
+        { id: 'd_2026-05-08_1', text: 'Light review only — rest before NBME', meta: 'Sleep early', xp: 15 }
+      ]),
+      day('2026-05-09', 'Sat', 'assessment', [
+        { id: 'd_2026-05-09_1', text: '⚔ NBME Free 120 — full exam, simulated conditions', meta: 'BOSS · ~3 hr', xp: 100, assessment: true },
+        { id: 'd_2026-05-09_2', text: 'Log score in tracker', xp: 25 }
+      ]),
+      day('2026-05-10', 'Sun', 'study', [
+        { id: 'd_2026-05-10_1', text: 'Review all incorrect Free 120 Qs', meta: 'Highest yield review of the week', xp: 50, priority: true },
+        { id: 'd_2026-05-10_2', text: '1 hr drug ad practice', xp: 25 }
+      ])
+    ],
+    notes: [
+      { type: 'warn', label: 'Decision point', text: 'If Free 120 ≥210 → on track. 195–209 → tighten review process. <195 → reassess sleep + review thoroughness, but don\'t panic.' }
+    ]
+  },
+
+  // ============ WEEK 3: May 11 - May 17 ============
+  {
+    n: 3, title: "Wards Wrap",
+    start: '2026-05-11', end: '2026-05-17',
+    rotation: 'Wards · Week 3 of 3',
+    dailyQ: '20–25', weeklyQ: '~150 Qs',
+    dayPlans: [
+      day('2026-05-11', 'Mon', 'study', [
+        { id: 'd_2026-05-11_1', text: '25 UWorld Qs + review', xp: 25 }
+      ]),
+      day('2026-05-12', 'Tue', 'study', [
+        { id: 'd_2026-05-12_1', text: '25 UWorld Qs + review', xp: 25 }
+      ]),
+      day('2026-05-13', 'Wed', 'study', [
+        { id: 'd_2026-05-13_1', text: '25 UWorld Qs + review', xp: 25 }
+      ]),
+      day('2026-05-14', 'Thu', 'study', [
+        { id: 'd_2026-05-14_1', text: '25 UWorld Qs + review', xp: 25 }
+      ]),
+      day('2026-05-15', 'Fri', 'rest', [
+        { id: 'd_2026-05-15_1', text: 'Light review or off (post-call)', xp: 10 }
+      ]),
+      day('2026-05-16', 'Sat', 'study', [
+        { id: 'd_2026-05-16_1', text: '40 UWorld Qs (build buffer)', xp: 40 },
+        { id: 'd_2026-05-16_2', text: '1 hr Biostats review', xp: 25 }
+      ]),
+      day('2026-05-17', 'Sun', 'study', [
+        { id: 'd_2026-05-17_1', text: 'Read CCS software primer (UWorld)', meta: 'Familiarize before next week', xp: 25, priority: true },
+        { id: 'd_2026-05-17_2', text: 'Identify 3 weakest topics from UWorld dashboard', xp: 25 }
+      ])
+    ],
+    notes: [
+      { type: 'info', label: 'Transition note', text: 'Wards is ending — you\'re about to enter your highest-yield study block. Use the weekend to mentally reset.' }
+    ]
+  },
+
+  // ============ WEEK 4: May 18 - May 24 ============
+  {
+    n: 4, title: "The Push Begins",
+    start: '2026-05-18', end: '2026-05-24',
+    rotation: 'Clinic · Week 1 of 2',
+    dailyQ: '35–40', weeklyQ: '~245 Qs',
+    dayPlans: [
+      day('2026-05-18', 'Mon', 'study', [
+        { id: 'd_2026-05-18_1', text: '40 UWorld Qs', meta: '~2.5 hr', xp: 40 }
+      ]),
+      day('2026-05-19', 'Tue', 'study', [
+        { id: 'd_2026-05-19_1', text: '40 UWorld Qs', xp: 40 }
+      ]),
+      day('2026-05-20', 'Wed', 'study', [
+        { id: 'd_2026-05-20_1', text: '40 UWorld Qs', xp: 40 },
+        { id: 'd_2026-05-20_2', text: '⚔ FIRST CCS CASE — interface practice', meta: 'BOSS · big milestone', xp: 75, priority: true }
+      ]),
+      day('2026-05-21', 'Thu', 'study', [
+        { id: 'd_2026-05-21_1', text: '40 UWorld Qs', xp: 40 }
+      ]),
+      day('2026-05-22', 'Fri', 'study', [
+        { id: 'd_2026-05-22_1', text: '30 UWorld Qs', xp: 30 },
+        { id: 'd_2026-05-22_2', text: '1 CCS case', xp: 30 }
+      ]),
+      day('2026-05-23', 'Sat', 'study', [
+        { id: 'd_2026-05-23_1', text: '55 UWorld Qs', meta: 'Bigger weekend block', xp: 55 },
+        { id: 'd_2026-05-23_2', text: '1 CCS case', xp: 30 },
+        { id: 'd_2026-05-23_3', text: 'Biostats deep dive (1.5 hr)', meta: 'NNT, sens/spec, study design', xp: 30 }
+      ]),
+      day('2026-05-24', 'Sun', 'rest', [
+        { id: 'd_2026-05-24_1', text: 'Rest OR catch-up + 1 CCS case', xp: 25 }
+      ])
+    ],
+    notes: [
+      { type: 'info', label: 'CCS strategy', text: 'First CCS cases will feel awkward — that\'s normal. Focus on interface fluency: ordering, advancing time, location changes. Medicine comes second in early cases.' }
+    ]
+  },
+
+  // ============ WEEK 5: May 25 - May 31 ============
+  {
+    n: 5, title: "Mid-Trial",
+    start: '2026-05-25', end: '2026-05-31',
+    rotation: 'Clinic · Week 2 of 2',
+    dailyQ: '35–40', weeklyQ: '~245 Qs',
+    dayPlans: [
+      day('2026-05-25', 'Mon', 'study', [
+        { id: 'd_2026-05-25_1', text: '40 UWorld Qs', xp: 40 }
+      ]),
+      day('2026-05-26', 'Tue', 'study', [
+        { id: 'd_2026-05-26_1', text: '40 UWorld Qs', xp: 40 },
+        { id: 'd_2026-05-26_2', text: '1 CCS case', xp: 30 }
+      ]),
+      day('2026-05-27', 'Wed', 'study', [
+        { id: 'd_2026-05-27_1', text: '40 UWorld Qs', xp: 40 }
+      ]),
+      day('2026-05-28', 'Thu', 'study', [
+        { id: 'd_2026-05-28_1', text: '40 UWorld Qs', xp: 40 },
+        { id: 'd_2026-05-28_2', text: '1 CCS case', xp: 30 }
+      ]),
+      day('2026-05-29', 'Fri', 'rest', [
+        { id: 'd_2026-05-29_1', text: 'Light review — rest before UWSA', meta: 'Sleep early', xp: 15 }
+      ]),
+      day('2026-05-30', 'Sat', 'assessment', [
+        { id: 'd_2026-05-30_1', text: '⚔ UWSA 1 (Step 3) — full Day 1 length, real conditions', meta: 'BOSS · ~7 hr', xp: 150, assessment: true },
+        { id: 'd_2026-05-30_2', text: 'Log score', xp: 25 }
+      ]),
+      day('2026-05-31', 'Sun', 'study', [
+        { id: 'd_2026-05-31_1', text: 'Review all UWSA 1 incorrects + flagged', xp: 50, priority: true },
+        { id: 'd_2026-05-31_2', text: 'FIP focus: ethics + patient safety/QI', meta: '1 hr UWorld subset', xp: 30 }
+      ])
+    ],
+    notes: [
+      { type: 'warn', label: 'UWSA interpretation', text: 'UWSA 1 trends slightly LOW vs. real score (typically -5 to -10 points). If you score ≥210 on UWSA 1, you\'re in safe pass territory. Don\'t tank morale on a low number — it\'s not predictive in isolation.' }
+    ]
+  },
+
+  // ============ WEEK 6: Jun 1 - Jun 7 ============
+  {
+    n: 6, title: "QBank Slayer",
+    start: '2026-06-01', end: '2026-06-07',
+    rotation: 'Elective · 1 week',
+    dailyQ: '40–50', weeklyQ: '~300 Qs',
+    dayPlans: [
+      day('2026-06-01', 'Mon', 'study', [
+        { id: 'd_2026-06-01_1', text: '50 UWorld Qs', xp: 50 },
+        { id: 'd_2026-06-01_2', text: '1 CCS case', xp: 30 }
+      ]),
+      day('2026-06-02', 'Tue', 'study', [
+        { id: 'd_2026-06-02_1', text: '50 UWorld Qs', xp: 50 }
+      ]),
+      day('2026-06-03', 'Wed', 'study', [
+        { id: 'd_2026-06-03_1', text: '50 UWorld Qs', xp: 50 },
+        { id: 'd_2026-06-03_2', text: '1 CCS case', xp: 30 }
+      ]),
+      day('2026-06-04', 'Thu', 'study', [
+        { id: 'd_2026-06-04_1', text: '50 UWorld Qs', xp: 50 }
+      ]),
+      day('2026-06-05', 'Fri', 'study', [
+        { id: 'd_2026-06-05_1', text: '⚔ Finish remaining UWorld Qs — TARGET: 100% complete', meta: 'BOSS · QBank slain', xp: 200, priority: true }
+      ]),
+      day('2026-06-06', 'Sat', 'assessment', [
+        { id: 'd_2026-06-06_1', text: '⚔ UWSA 2 (or NBME 7) — Day 1 length', meta: 'BOSS · checkpoint', xp: 150, assessment: true },
+        { id: 'd_2026-06-06_2', text: 'Review UWSA 2 thoroughly', xp: 50 }
+      ]),
+      day('2026-06-07', 'Sun', 'study', [
+        { id: 'd_2026-06-07_1', text: 'Start UWorld incorrects review', meta: 'Filter "incorrect" in UWorld', xp: 50 }
+      ])
+    ],
+    notes: [
+      { type: 'info', label: 'Score target', text: 'By UWSA 2: aim for ≥215. If you\'re hitting that, the real test will land 5–10 points higher on average. You\'re in great shape.' }
+    ]
+  },
+
+  // ============ WEEK 7: Jun 8 - Jun 14 ============
+  {
+    n: 7, title: "Survive the Night",
+    start: '2026-06-08', end: '2026-06-14',
+    rotation: 'Nights · 1 week',
+    dailyQ: '10–15 (or rest)', weeklyQ: '~70 Qs',
+    dayPlans: [
+      day('2026-06-08', 'Mon', 'rest', [
+        { id: 'd_2026-06-08_1', text: '15 Qs OR rest (sleep > studying)', xp: 15 }
+      ]),
+      day('2026-06-09', 'Tue', 'rest', [
+        { id: 'd_2026-06-09_1', text: '15 Qs OR rest', xp: 15 }
+      ]),
+      day('2026-06-10', 'Wed', 'rest', [
+        { id: 'd_2026-06-10_1', text: '15 Qs OR rest', xp: 15 },
+        { id: 'd_2026-06-10_2', text: 'Drug ads (10 min) — pattern recognition', xp: 10 }
+      ]),
+      day('2026-06-11', 'Thu', 'rest', [
+        { id: 'd_2026-06-11_1', text: '15 Qs OR rest', xp: 15 },
+        { id: 'd_2026-06-11_2', text: 'Ethics vignettes (UWorld)', xp: 15 }
+      ]),
+      day('2026-06-12', 'Fri', 'rest', [
+        { id: 'd_2026-06-12_1', text: 'Rest', xp: 10 }
+      ]),
+      day('2026-06-13', 'Sat', 'rest', [
+        { id: 'd_2026-06-13_1', text: '⚔ RECOVER — sleep is the priority', meta: 'PRIORITY', xp: 50, priority: true }
+      ]),
+      day('2026-06-14', 'Sun', 'study', [
+        { id: 'd_2026-06-14_1', text: 'If recovered: 50 Qs + 2 CCS cases', meta: 'Only if rested', xp: 50 }
+      ])
+    ],
+    notes: [
+      { type: 'warn', label: 'No NBMEs this week', text: 'Sleep deprivation tanks scores by 10–15 points. A bad NBME taken on nights will misinform your prep AND wreck your morale. Skip assessments this week — period.' }
+    ]
+  },
+
+  // ============ WEEK 8: Jun 15 - Jun 21 ============
+  {
+    n: 8, title: "Final Sprint I",
+    start: '2026-06-15', end: '2026-06-21',
+    rotation: 'Clinic · Dedicated-style',
+    dailyQ: 'Variable — review heavy', weeklyQ: '—',
+    dayPlans: [
+      day('2026-06-15', 'Mon', 'study', [
+        { id: 'd_2026-06-15_1', text: 'Finish UWorld incorrects (50–80 Qs)', meta: 'Highest-yield review', xp: 75 }
+      ]),
+      day('2026-06-16', 'Tue', 'study', [
+        { id: 'd_2026-06-16_1', text: 'Finish incorrects', xp: 50 },
+        { id: 'd_2026-06-16_2', text: '3 CCS cases', xp: 75 }
+      ]),
+      day('2026-06-17', 'Wed', 'study', [
+        { id: 'd_2026-06-17_1', text: '4 CCS cases', xp: 100 },
+        { id: 'd_2026-06-17_2', text: 'Ethics review', xp: 25 }
+      ]),
+      day('2026-06-18', 'Thu', 'study', [
+        { id: 'd_2026-06-18_1', text: '4 CCS cases', xp: 100 },
+        { id: 'd_2026-06-18_2', text: 'Biostats deep dive', xp: 30 }
+      ]),
+      day('2026-06-19', 'Fri', 'study', [
+        { id: 'd_2026-06-19_1', text: '⚔ Final CCS cases — ALL ~30 done', meta: 'BOSS · CCS conquered', xp: 150, priority: true },
+        { id: 'd_2026-06-19_2', text: 'Drug ads review', xp: 20 }
+      ]),
+      day('2026-06-20', 'Sat', 'assessment', [
+        { id: 'd_2026-06-20_1', text: '⚔ FINAL NBME — UWSA 3 or NBME 8, full Day 1', meta: 'BOSS · final dress rehearsal', xp: 200, assessment: true },
+        { id: 'd_2026-06-20_2', text: 'Log score — aim ≥220', xp: 25 }
+      ]),
+      day('2026-06-21', 'Sun', 'study', [
+        { id: 'd_2026-06-21_1', text: 'Review final NBME — list weak areas', xp: 50, priority: true }
+      ])
+    ],
+    notes: [
+      { type: 'info', label: 'Score interpretation', text: 'Final NBME ≥220 = pass with comfortable margin. ≥210 = pass. <205 = unusual at this stage but still passable; focus final week on weak areas.' }
+    ]
+  },
+
+  // ============ WEEK 9: Jun 22 - Jun 30 (test week, 9 days) ============
+  {
+    n: 9, title: "Final Boss",
+    start: '2026-06-22', end: '2026-06-30',
+    rotation: 'Test Week',
+    dailyQ: 'Light targeted review', weeklyQ: '—',
+    dayPlans: [
+      day('2026-06-22', 'Mon', 'study', [
+        { id: 'd_2026-06-22_1', text: 'Review weak areas from final NBME', meta: 'Max 2 hr study', xp: 50 }
+      ]),
+      day('2026-06-23', 'Tue', 'study', [
+        { id: 'd_2026-06-23_1', text: 'Redo any shaky CCS cases', meta: 'Software fluency check', xp: 50 }
+      ]),
+      day('2026-06-24', 'Wed', 'study', [
+        { id: 'd_2026-06-24_1', text: 'Light biostats + drug ads + ethics', meta: 'Quick refresh only', xp: 30 }
+      ]),
+      day('2026-06-25', 'Thu', 'rest', [
+        { id: 'd_2026-06-25_1', text: '⚔ Review own notes ONLY — STOP by 6 PM', meta: 'No new content', xp: 50, priority: true }
+      ]),
+      day('2026-06-26', 'Fri', 'rest', [
+        { id: 'd_2026-06-26_1', text: 'OFF — logistics, prep, sleep early', meta: 'ID, route, clothes, food prep', xp: 75, priority: true }
+      ]),
+      day('2026-06-27', 'Sat', 'test', [
+        { id: 'd_2026-06-27_1', text: '★ DAY 1 (CFA) — ~7 hr exam', meta: 'TEST · Foundations of Independent Practice', xp: 500, assessment: true }
+      ]),
+      day('2026-06-28', 'Sun', 'recovery', [
+        { id: 'd_2026-06-28_1', text: 'NO STUDYING — recover fully', meta: 'Sleep, eat, non-medical activity', xp: 50 }
+      ]),
+      day('2026-06-29', 'Mon', 'study', [
+        { id: 'd_2026-06-29_1', text: 'Light CCS interface review only', meta: 'Optional · 30 min max', xp: 25 }
+      ]),
+      day('2026-06-30', 'Tue', 'test', [
+        { id: 'd_2026-06-30_1', text: '★ DAY 2 (ACM + CCS) — ~9 hr exam', meta: 'TEST · MCQs + 13 CCS cases', xp: 1000, assessment: true }
+      ])
+    ],
+    notes: [
+      { type: 'warn', label: 'Day-of strategy', text: 'Use every break (45 min total Day 1, 45 min Day 2). Eat protein + carbs at lunch. The CCS portion rewards your wards instincts — trust them. Don\'t second-guess case management you\'d do in real life.' }
+    ]
+  }
+];
+
+// ===========================================
+// STORAGE
+// ===========================================
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        tasks: parsed.tasks || {},
+        qbank: parsed.qbank ?? 715,
+        ccs: parsed.ccs ?? 0,
+        xp: parsed.xp ?? 0,
+        streakDays: parsed.streakDays || [],
+        completedDays: parsed.completedDays || []
+      };
+    }
+  } catch (e) {}
+  return {
+    tasks: {},
+    qbank: 715, // real number from user
+    ccs: 0,
+    xp: 0,
+    streakDays: [],
+    completedDays: []
+  };
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+
+let state = loadState();
+
+// ===========================================
+// CALCULATIONS
+// ===========================================
+function getAllTasks() {
+  const all = [];
+  WEEKS.forEach(w => {
+    w.dayPlans.forEach(dp => {
+      dp.tasks.forEach(t => all.push({ ...t, date: dp.date, weekN: w.n }));
+    });
+  });
+  return all;
+}
+
+function getTotalTasks() {
+  return getAllTasks().length;
+}
+
+function getDoneTasks() {
+  return Object.values(state.tasks).filter(v => v).length;
+}
+
+function getProgressPct() {
+  const total = getTotalTasks();
+  if (total === 0) return 0;
+  return Math.round((getDoneTasks() / total) * 100);
+}
+
+function getRank() {
+  const pct = getProgressPct();
+  for (let i = RANKS.length - 1; i >= 0; i--) {
+    if (pct >= RANKS[i].min) return RANKS[i];
+  }
+  return RANKS[0];
+}
+
+function getLevel() {
+  // Level up every 250 XP, with diminishing curve later
+  const xp = state.xp;
+  if (xp < 250) return { level: 1, xpInLevel: xp, xpNeeded: 250 };
+  if (xp < 600) return { level: 2, xpInLevel: xp - 250, xpNeeded: 350 };
+  if (xp < 1100) return { level: 3, xpInLevel: xp - 600, xpNeeded: 500 };
+  if (xp < 1800) return { level: 4, xpInLevel: xp - 1100, xpNeeded: 700 };
+  if (xp < 2700) return { level: 5, xpInLevel: xp - 1800, xpNeeded: 900 };
+  if (xp < 3800) return { level: 6, xpInLevel: xp - 2700, xpNeeded: 1100 };
+  if (xp < 5100) return { level: 7, xpInLevel: xp - 3800, xpNeeded: 1300 };
+  if (xp < 6600) return { level: 8, xpInLevel: xp - 5100, xpNeeded: 1500 };
+  if (xp < 8300) return { level: 9, xpInLevel: xp - 6600, xpNeeded: 1700 };
+  return { level: 10, xpInLevel: 0, xpNeeded: 1, max: true };
+}
+
+function getCurrentDate() {
+  return new Date(); // real time
+}
+
+function getTodayKey() {
+  return dateKey(getCurrentDate());
+}
+
+function getDayPlan(dateKeyStr) {
+  for (const w of WEEKS) {
+    for (const dp of w.dayPlans) {
+      if (dp.date === dateKeyStr) return { week: w, dayPlan: dp };
+    }
+  }
+  return null;
+}
+
+function getCurrentWeek() {
+  const today = getTodayKey();
+  for (const w of WEEKS) {
+    if (today >= w.start && today <= w.end) return w;
+  }
+  // Before plan start
+  if (today < WEEKS[0].start) return WEEKS[0];
+  // After plan end
+  return WEEKS[WEEKS.length - 1];
+}
+
+function daysUntil(targetDate) {
+  const ms = targetDate - getCurrentDate();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
+
+function getNextBoss() {
+  const today = getCurrentDate();
+  // Bosses are: NBMEs and test days
+  const bosses = [
+    { name: 'NBME Free 120', date: new Date('2026-05-09T08:00:00'), type: 'nbme' },
+    { name: 'UWSA 1', date: new Date('2026-05-30T08:00:00'), type: 'nbme' },
+    { name: 'UWSA 2 / NBME 7', date: new Date('2026-06-06T08:00:00'), type: 'nbme' },
+    { name: 'UWSA 3 / NBME 8', date: new Date('2026-06-20T08:00:00'), type: 'nbme' },
+    { name: 'Day 1 (CFA)', date: TEST_DATE, type: 'test' },
+    { name: 'Day 2 (ACM)', date: TEST_DATE_2, type: 'test' }
+  ];
+  for (const b of bosses) {
+    if (b.date > today) return b;
+  }
+  return null;
+}
+
+function weekProgress(week) {
+  let total = 0, done = 0;
+  week.dayPlans.forEach(dp => {
+    dp.tasks.forEach(t => {
+      total++;
+      if (state.tasks[t.id]) done++;
+    });
+  });
+  return { total, done, pct: total > 0 ? Math.round((done/total)*100) : 0 };
+}
+
+// ===========================================
+// XP & STREAKS
+// ===========================================
+function awardXP(amount, label) {
+  state.xp += amount;
+  saveState();
+  showToast(`<span class="xp-gain">+${amount} XP</span> ${label || ''}`);
+}
+
+function deductXP(amount) {
+  state.xp = Math.max(0, state.xp - amount);
+  saveState();
+}
+
+function updateStreak() {
+  const today = getTodayKey();
+  // A day "counts" toward streak if at least one task is done that day
+  const todayPlan = getDayPlan(today);
+  if (!todayPlan) return;
+
+  const anyDone = todayPlan.dayPlan.tasks.some(t => state.tasks[t.id]);
+  if (anyDone && !state.streakDays.includes(today)) {
+    state.streakDays.push(today);
+    saveState();
+  } else if (!anyDone && state.streakDays.includes(today)) {
+    state.streakDays = state.streakDays.filter(d => d !== today);
+    saveState();
+  }
+}
+
+function calcCurrentStreak() {
+  // Count back consecutive days from today
+  let streak = 0;
+  let d = getCurrentDate();
+  while (true) {
+    const k = dateKey(d);
+    if (state.streakDays.includes(k)) {
+      streak++;
+      d = dateAdd(d, -1);
+    } else {
+      // Today not yet completed but yesterday was - still count from yesterday
+      if (streak === 0 && k === getTodayKey()) {
+        d = dateAdd(d, -1);
+        continue;
+      }
+      break;
+    }
+  }
+  return streak;
+}
+
+// ===========================================
+// RENDER FUNCTIONS
+// ===========================================
+function renderHeader() {
+  const today = getCurrentDate();
+  document.getElementById('dateString').textContent =
+    dateFmt(today, 'long').toUpperCase();
+}
+
+function renderHunter() {
+  const rank = getRank();
+  const level = getLevel();
+  const pct = getProgressPct();
+  const streak = calcCurrentStreak();
+  const done = getDoneTasks();
+
+  document.getElementById('rankBadge').textContent = rank.letter;
+  document.getElementById('levelNum').textContent = level.level;
+  document.getElementById('hunterClass').textContent =
+    `PGY-2 · IM · ${rank.label}`;
+
+  document.getElementById('xpCurrent').textContent = level.max ? '∞' : level.xpInLevel;
+  document.getElementById('xpMax').textContent = level.max ? '∞' : level.xpNeeded;
+  const xpPct = level.max ? 100 : (level.xpInLevel / level.xpNeeded) * 100;
+  document.getElementById('xpFill').style.width = Math.min(100, xpPct) + '%';
+
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('stat-tasks').textContent = done;
+  document.getElementById('stat-pct').textContent = pct + '%';
+}
+
+function renderBossBanner() {
+  const banner = document.getElementById('bossBanner');
+  const next = getNextBoss();
+  if (!next) {
+    banner.innerHTML = '';
+    return;
+  }
+  const days = daysUntil(next.date);
+  if (days < 0 || days > 14) {
+    // Only show banner within 14 days
+    if (days > 14) {
+      banner.innerHTML = '';
+      return;
+    }
+  }
+
+  const isTest = next.type === 'test';
+  const cls = isTest ? 'boss-banner test' : 'boss-banner';
+  const eyebrow = isTest ? 'Final Boss Approaching' : 'Boss Encounter';
+  const dateStr = dateFmt(next.date, 'long');
+
+  let urgency = '';
+  if (days <= 1) urgency = ' · TOMORROW';
+  else if (days <= 3) urgency = ' · CRITICAL WINDOW';
+  else if (days <= 7) urgency = ' · ONE WEEK OUT';
+
+  banner.innerHTML = `
+    <div class="${cls}">
+      <div class="boss-eyebrow">${eyebrow}${urgency}</div>
+      <div class="boss-row">
+        <div>
+          <div class="boss-name"><em>${next.name}</em></div>
+          <div class="boss-meta">${dateStr}</div>
+        </div>
+        <div class="boss-countdown">
+          <div class="boss-days">${days}</div>
+          <div class="boss-days-label">${days === 1 ? 'Day' : 'Days'}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderToday() {
+  const today = getTodayKey();
+  const plan = getDayPlan(today);
+  const eyebrow = document.getElementById('todayEyebrow');
+  const dateEl = document.getElementById('todayDate');
+  const metaEl = document.getElementById('todayMeta');
+  const tasksEl = document.getElementById('todayTasks');
+  const tomorrowSec = document.getElementById('tomorrowSection');
+
+  const todayDate = getCurrentDate();
+
+  if (!plan) {
+    // Outside plan dates
+    if (todayDate < new Date(WEEKS[0].start)) {
+      eyebrow.textContent = '— Plan starts soon —';
+      dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>`;
+      metaEl.textContent = `Plan begins ${dateFmt(new Date(WEEKS[0].start), 'long')}`;
+      tasksEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">◆</div>The hunt begins ${dateFmt(new Date(WEEKS[0].start), 'short')}.</div>`;
+    } else {
+      eyebrow.textContent = '— Plan complete —';
+      dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>`;
+      metaEl.textContent = 'You are beyond the plan.';
+      tasksEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✓</div>All tasks completed.</div>`;
+    }
+    tomorrowSec.style.display = 'none';
+    return;
+  }
+
+  const week = plan.week;
+  const dayPlan = plan.dayPlan;
+
+  eyebrow.textContent = `Week ${week.n} · ${week.title}`;
+  dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>, ${dateFmt(todayDate, 'short')}`;
+  metaEl.textContent = `${week.rotation} · ${dayPlan.type === 'rest' ? 'Rest day' : dayPlan.type === 'assessment' ? 'Assessment day' : dayPlan.type === 'test' ? 'TEST DAY' : 'Study day'}`;
+
+  // Render tasks
+  const totalToday = dayPlan.tasks.length;
+  const doneToday = dayPlan.tasks.filter(t => state.tasks[t.id]).length;
+
+  let html = `<div class="section-label">⚔ Today's Quests <span class="count">${doneToday}/${totalToday}</span></div>`;
+  dayPlan.tasks.forEach(t => {
+    html += renderTaskHTML(t);
+  });
+
+  tasksEl.innerHTML = html;
+
+  // Tomorrow preview
+  const tomorrow = dateAdd(todayDate, 1);
+  const tomorrowPlan = getDayPlan(dateKey(tomorrow));
+  const tomorrowEl = document.getElementById('tomorrowTasks');
+
+  if (tomorrowPlan) {
+    let twHtml = `<div style="margin-bottom: 8px; color: var(--text); font-size: 13px;"><strong>${dateFmt(tomorrow, 'weekday')}, ${dateFmt(tomorrow, 'short')}</strong> <span style="color: var(--text-muted); font-family: 'SF Mono', monospace; font-size: 9px; letter-spacing: 0.5px;">· ${tomorrowPlan.dayPlan.type.toUpperCase()}</span></div>`;
+    tomorrowPlan.dayPlan.tasks.forEach(t => {
+      twHtml += `<div class="tomorrow-preview-task">• ${t.text}${t.meta ? ` <span style="color: var(--text-muted); font-size: 11px;">(${t.meta})</span>` : ''}</div>`;
+    });
+    tomorrowEl.innerHTML = twHtml;
+    tomorrowSec.style.display = 'block';
+  } else {
+    tomorrowSec.style.display = 'none';
+  }
+}
+
+function renderTaskHTML(t, isDay) {
+  const isDone = !!state.tasks[t.id];
+  const classes = ['task'];
+  if (isDone) classes.push('done');
+  if (t.priority) classes.push('priority');
+  if (t.assessment) classes.push('assessment');
+
+  const xpTag = t.xp ? `<span class="xp-tag">+${t.xp} XP</span>` : '';
+
+  return `
+    <div class="${classes.join(' ')}" onclick="toggleTask('${t.id}', ${t.xp || 10})">
+      <div class="checkbox"></div>
+      <div class="task-content">
+        <div class="task-text">${t.text}</div>
+        <div class="task-meta">${xpTag}${t.meta ? `<span>${t.meta}</span>` : ''}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPlan() {
+  const container = document.getElementById('planContent');
+  const todayKey = getTodayKey();
+  const currentWeek = getCurrentWeek();
+
+  let html = '';
+  WEEKS.forEach(w => {
+    const wp = weekProgress(w);
+    const isCurrent = w.n === currentWeek.n;
+    const isPast = w.end < todayKey;
+    const isCompleted = wp.pct === 100;
+    const isFuture = w.start > todayKey;
+
+    const classes = ['week-card'];
+    if (isCurrent) classes.push('current', 'expanded');
+    if (isPast && !isCurrent) classes.push('past');
+    if (isCompleted) classes.push('completed');
+
+    html += `
+      <div class="${classes.join(' ')}" id="week-${w.n}">
+        <div class="week-card-header" onclick="toggleWeek(${w.n})">
+          <div class="week-num-badge"><span class="num-text">${w.n}</span></div>
+          <div class="week-card-info">
+            <div class="week-card-title">Week ${w.n} · <em>${w.title}</em></div>
+            <div class="week-card-dates">${dateFmt(new Date(w.start + 'T00:00:00'), 'short')} – ${dateFmt(new Date(w.end + 'T00:00:00'), 'short')} · ${w.rotation}</div>
+          </div>
+          <div class="week-card-progress">
+            <div class="week-card-pct">${wp.pct}%</div>
+            <div class="week-card-pct-label">${wp.done}/${wp.total}</div>
+          </div>
+        </div>
+        <div class="week-card-body">
+          <div class="week-pills">
+            <span class="week-pill gold">${w.dailyQ} Qs/day</span>
+            <span class="week-pill">${w.weeklyQ}</span>
+          </div>
+
+          ${(w.notes || []).map(n => `
+            <div class="note-box ${n.type || ''}">
+              <div class="note-label">${n.label}</div>
+              <div class="note-text">${n.text}</div>
+            </div>
+          `).join('')}
+
+          <div class="sub-section">
+            <div class="sub-section-label">Daily Quests</div>
+            ${w.dayPlans.map(dp => `
+              <div class="day-group">
+                <div class="day-group-header">
+                  <div class="day-group-name">${dp.label} · ${dp.type}</div>
+                  <div class="day-group-date">${dateFmt(new Date(dp.date + 'T00:00:00'), 'short')}</div>
+                </div>
+                ${dp.tasks.map(t => `
+                  <div class="day-task ${state.tasks[t.id] ? 'done' : ''}" onclick="toggleTask('${t.id}', ${t.xp || 10})">
+                    <div class="checkbox"></div>
+                    <div class="task-content">
+                      <div class="task-text">${t.text}</div>
+                      ${t.meta || t.xp ? `<div class="task-meta">${t.xp ? `<span class="xp-tag">+${t.xp}</span>` : ''}${t.meta ? `<span>${t.meta}</span>` : ''}</div>` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderStats() {
+  const container = document.getElementById('statsContent');
+
+  // Pace calculation
+  const today = getCurrentDate();
+  const totalDays = Math.ceil((TEST_DATE - PLAN_START) / (1000 * 60 * 60 * 24));
+  const daysElapsed = Math.max(0, Math.ceil((today - PLAN_START) / (1000 * 60 * 60 * 24)));
+  const daysLeft = Math.max(0, daysUntil(TEST_DATE));
+
+  // Q-bank pace: target = finish 1421 remaining over ~38 days (to leave 2 weeks buffer)
+  const qTotal = 2136;
+  const qDone = state.qbank;
+  const qRemaining = qTotal - qDone;
+  const qFinishTarget = new Date('2026-06-05T23:59:59'); // Week 6 end
+  const qDaysLeft = Math.max(1, Math.ceil((qFinishTarget - today) / (1000 * 60 * 60 * 24)));
+  const qNeededDaily = Math.ceil(qRemaining / qDaysLeft);
+
+  // Expected progress at this point
+  const expectedQ = Math.round(715 + (qTotal - 715) * (daysElapsed / 38));
+  const qDelta = qDone - expectedQ;
+
+  // Tasks pace
+  const totalTasks = getTotalTasks();
+  const doneTasks = getDoneTasks();
+  const expectedTasks = Math.round(totalTasks * (daysElapsed / totalDays));
+  const taskDelta = doneTasks - expectedTasks;
+
+  // Daily average
+  const avgQPerDay = daysElapsed > 0 ? Math.round((qDone - 715) / daysElapsed) : 0;
+
+  // CCS pace
+  const ccsTotal = 30;
+  const ccsDone = state.ccs;
+
+  // Overall pace status
+  let paceClass = 'green';
+  let paceStatus = 'On Pace';
+  if (qDelta < -50 || taskDelta < -10) {
+    paceClass = 'behind';
+    paceStatus = 'Behind';
+  }
+  if (qDelta < -150 || taskDelta < -30) {
+    paceClass = 'danger';
+    paceStatus = 'Falling Behind';
+  }
+  if (qDelta > 50 && taskDelta > 5) {
+    paceClass = 'green';
+    paceStatus = 'Ahead';
+  }
+
+  const dDay1 = daysUntil(TEST_DATE);
+  const dDay2 = daysUntil(TEST_DATE_2);
+
+  let html = '';
+
+  // Days countdown
+  html += `
+    <div class="stats-grid">
+      <div class="stat-card gold">
+        <div class="stat-card-label">Days to Day 1</div>
+        <div class="stat-card-value gold">${dDay1}</div>
+        <div class="stat-card-sub">Sat Jun 27</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Days to Day 2</div>
+        <div class="stat-card-value gold">${dDay2}</div>
+        <div class="stat-card-sub">Tue Jun 30</div>
+      </div>
+    </div>
+  `;
+
+  // Pace gauge
+  html += `
+    <div class="pace-gauge">
+      <div class="pace-row">
+        <div class="pace-label">⬢ Overall Pace</div>
+        <div class="pace-value">${paceStatus}</div>
+      </div>
+      <div class="pace-bar">
+        <div class="pace-fill ${paceClass}" style="width: ${Math.min(100, Math.max(5, daysElapsed/totalDays*100))}%"></div>
+      </div>
+      <div class="pace-marker">Day ${daysElapsed} of ${totalDays} · ${Math.round(daysElapsed/totalDays*100)}% through plan</div>
+    </div>
+  `;
+
+  // Stats grid
+  html += `
+    <div class="stats-grid">
+      <div class="stat-card xp">
+        <div class="stat-card-label">Avg Qs/Day</div>
+        <div class="stat-card-value xp-color">${avgQPerDay}</div>
+        <div class="stat-card-sub">Since plan start</div>
+      </div>
+      <div class="stat-card ${qNeededDaily > avgQPerDay + 10 ? 'warn' : ''}">
+        <div class="stat-card-label">Required/Day</div>
+        <div class="stat-card-value ${qNeededDaily > avgQPerDay + 10 ? 'warn' : 'gold'}">${qNeededDaily}</div>
+        <div class="stat-card-sub">To finish by Jun 5</div>
+      </div>
+      <div class="stat-card ${qDelta < 0 ? 'warn' : 'green'}">
+        <div class="stat-card-label">QBank Delta</div>
+        <div class="stat-card-value ${qDelta < 0 ? 'warn' : 'green'}">${qDelta >= 0 ? '+' : ''}${qDelta}</div>
+        <div class="stat-card-sub">vs. expected</div>
+      </div>
+      <div class="stat-card ${taskDelta < 0 ? 'warn' : 'green'}">
+        <div class="stat-card-label">Tasks Delta</div>
+        <div class="stat-card-value ${taskDelta < 0 ? 'warn' : 'green'}">${taskDelta >= 0 ? '+' : ''}${taskDelta}</div>
+        <div class="stat-card-sub">vs. expected</div>
+      </div>
+    </div>
+  `;
+
+  // QBank counter
+  const qPct = Math.min(100, (qDone / qTotal) * 100);
+  html += `
+    <div class="counter-card">
+      <div class="counter-header">
+        <div class="counter-title">⬢ UWorld QBank</div>
+        <div class="counter-progress"><em>${qDone}</em> / ${qTotal} (${Math.round(qPct)}%)</div>
+      </div>
+      <div class="counter-bar">
+        <div class="counter-bar-fill qb" style="width: ${qPct}%"></div>
+      </div>
+      <div class="counter-buttons">
+        <button class="counter-btn minus" onclick="adjustQbank(-10)">−10</button>
+        <button class="counter-btn" onclick="adjustQbank(10)">+10</button>
+        <button class="counter-btn" onclick="adjustQbank(25)">+25</button>
+        <button class="counter-btn" onclick="adjustQbank(40)">+40</button>
+        <button class="counter-btn" onclick="adjustQbank(50)">+50</button>
+      </div>
+    </div>
+  `;
+
+  // CCS counter
+  const ccsPct = Math.min(100, (ccsDone / ccsTotal) * 100);
+  html += `
+    <div class="counter-card">
+      <div class="counter-header">
+        <div class="counter-title">⚔ CCS Cases</div>
+        <div class="counter-progress"><em>${ccsDone}</em> / ${ccsTotal} (${Math.round(ccsPct)}%)</div>
+      </div>
+      <div class="counter-bar">
+        <div class="counter-bar-fill ccs" style="width: ${ccsPct}%"></div>
+      </div>
+      <div class="counter-buttons">
+        <button class="counter-btn minus" onclick="adjustCcs(-1)">−1</button>
+        <button class="counter-btn" onclick="adjustCcs(1)">+1</button>
+        <button class="counter-btn" onclick="adjustCcs(2)">+2</button>
+        <button class="counter-btn" onclick="adjustCcs(3)">+3</button>
+        <button class="counter-btn" onclick="adjustCcs(5)">+5</button>
+      </div>
+    </div>
+  `;
+
+  // Lifetime XP
+  html += `
+    <div class="stats-grid" style="margin-top: 16px;">
+      <div class="stat-card xp">
+        <div class="stat-card-label">Total XP</div>
+        <div class="stat-card-value xp-color">${state.xp.toLocaleString()}</div>
+        <div class="stat-card-sub">Lifetime earned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Plan Progress</div>
+        <div class="stat-card-value gold">${getProgressPct()}%</div>
+        <div class="stat-card-sub">${doneTasks}/${totalTasks} tasks</div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+// ===========================================
+// INTERACTIONS
+// ===========================================
+function toggleTask(id, xp) {
+  const wasDone = !!state.tasks[id];
+  state.tasks[id] = !wasDone;
+
+  if (state.tasks[id]) {
+    awardXP(xp || 10);
+  } else {
+    deductXP(xp || 10);
+  }
+
+  updateStreak();
+  saveState();
+  rerender();
+}
+
+function toggleWeek(n) {
+  const card = document.getElementById('week-' + n);
+  card.classList.toggle('expanded');
+}
+
+function adjustQbank(delta) {
+  state.qbank = Math.max(0, Math.min(2136, state.qbank + delta));
+  saveState();
+  if (delta > 0) awardXP(Math.floor(delta / 5), `${delta} Qs logged`);
+  rerender();
+}
+
+function adjustCcs(delta) {
+  state.ccs = Math.max(0, Math.min(30, state.ccs + delta));
+  saveState();
+  if (delta > 0) awardXP(delta * 15, `${delta} CCS case${delta > 1 ? 's' : ''} logged`);
+  rerender();
+}
+
+function quickQbank() { adjustQbank(25); }
+function quickCCS() { adjustCcs(1); }
+
+function switchTab(name) {
+  document.querySelectorAll('.main-tab').forEach((t, i) => {
+    const tabName = ['today', 'plan', 'stats'][i];
+    t.classList.toggle('active', tabName === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+}
+
+function resetCurrentWeek() {
+  const cw = getCurrentWeek();
+  if (!confirm(`Reset all checkboxes for Week ${cw.n} (${cw.title})?`)) return;
+  cw.dayPlans.forEach(dp => {
+    dp.tasks.forEach(t => { delete state.tasks[t.id]; });
+  });
+  saveState();
+  rerender();
+}
+
+function resetAll() {
+  if (!confirm('Reset ALL data? This will clear all task progress, XP, and counters. Cannot be undone.')) return;
+  if (!confirm('Are you really sure? This will delete everything.')) return;
+  state = {
+    tasks: {},
+    qbank: 715,
+    ccs: 0,
+    xp: 0,
+    streakDays: [],
+    completedDays: []
+  };
+  saveState();
+  rerender();
+}
+
+// ===========================================
+// TOAST
+// ===========================================
+let toastTimer = null;
+function showToast(html) {
+  const t = document.getElementById('toast');
+  t.innerHTML = html;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ===========================================
+// MASTER RERENDER
+// ===========================================
+function rerender() {
+  renderHeader();
+  renderHunter();
+  renderBossBanner();
+  renderToday();
+  renderPlan();
+  renderStats();
+}
+
+// Init
+rerender();
+
+// Refresh every minute (for countdown updates)
+setInterval(() => {
+  renderHeader();
+  renderBossBanner();
+}, 60000);
+</script>
+</body>
+</html>
