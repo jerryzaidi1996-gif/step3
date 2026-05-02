@@ -1324,6 +1324,234 @@
     color: var(--xp);
     font-weight: 700;
   }
+
+  /* ===========================================
+     Q-TASK STEPPER (partial credit UI)
+     =========================================== */
+  .task.q-task {
+    display: block;
+    padding: 12px 14px;
+  }
+
+  .task.q-task .q-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .task.q-task .task-content {
+    margin-bottom: 8px;
+  }
+
+  .q-stepper {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 10px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+
+  .q-step-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-3);
+    color: var(--text);
+    font-family: 'SF Mono', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .q-step-btn:active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+
+  .q-step-btn.minus {
+    color: var(--text-dim);
+  }
+
+  .q-step-display {
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  .q-step-num {
+    font-size: 18px;
+    color: var(--text);
+    font-weight: 500;
+    font-family: 'SF Mono', monospace;
+  }
+
+  .q-step-num em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .q-step-num.complete em {
+    color: var(--success);
+  }
+
+  .q-step-num.over em {
+    color: var(--xp);
+  }
+
+  .q-step-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .q-task.complete {
+    background: linear-gradient(135deg, rgba(74, 222, 128, 0.08), var(--bg-2));
+    border-color: rgba(74, 222, 128, 0.3);
+  }
+
+  .q-task.partial {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), var(--bg-2));
+    border-left: 3px solid var(--warn);
+  }
+
+  /* Mini progress bar for stepper */
+  .q-mini-bar {
+    grid-column: 1 / -1;
+    height: 4px;
+    background: var(--bg);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .q-mini-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .q-mini-bar-fill.complete {
+    background: var(--success);
+  }
+
+  /* ===========================================
+     Q-DEBT BADGE & CATCH-UP SECTION
+     =========================================== */
+  .debt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.15));
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 10px;
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    color: var(--warn);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-left: 6px;
+  }
+
+  .debt-badge::before {
+    content: '⚠';
+    font-size: 10px;
+  }
+
+  .debt-banner {
+    margin: 16px 0;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.03));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-left: 3px solid var(--warn);
+    border-radius: 10px;
+  }
+
+  .debt-banner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .debt-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--warn);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .debt-label::before {
+    content: '⚠ ';
+  }
+
+  .debt-num {
+    font-size: 20px;
+    color: var(--warn);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  .debt-text {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .debt-text em {
+    color: var(--text);
+    font-style: italic;
+  }
+
+  /* Catch-up day indicator */
+  .catch-up-indicator {
+    display: inline-block;
+    padding: 2px 6px;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warn);
+    font-family: 'SF Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    font-weight: 700;
+    margin-left: 4px;
+  }
+
+  .catch-up-suggestion {
+    background: var(--bg-1);
+    border: 1px dashed rgba(245, 158, 11, 0.4);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .catch-up-suggestion em {
+    color: var(--warn);
+    font-style: italic;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
@@ -1504,24 +1732,24 @@ const WEEKS = [
     dailyQ: '20–25', weeklyQ: '~110 Qs (partial week)',
     dayPlans: [
       day('2026-04-29', 'Wed', 'study', [
-        { id: 'd_2026-04-29_1', text: '20 UWorld Qs (random, tutored)', meta: '~75 min', xp: 25 },
+        { id: 'd_2026-04-29_1', text: 'UWorld Qs (random, tutored)', meta: '~75 min', xp: 25, qTarget: 20 },
         { id: 'd_2026-04-29_2', text: 'Review all Qs (correct + incorrect)', xp: 10 },
         { id: 'd_2026-04-29_3', text: 'Schedule NBME Free 120 for May 9–10', meta: 'PRIORITY · do this today', xp: 25, priority: true }
       ]),
       day('2026-04-30', 'Thu', 'study', [
-        { id: 'd_2026-04-30_1', text: '25 UWorld Qs', meta: '~90 min', xp: 25 },
+        { id: 'd_2026-04-30_1', text: 'UWorld Qs', meta: '~90 min', xp: 25, qTarget: 25 },
         { id: 'd_2026-04-30_2', text: 'Review all Qs', xp: 10 }
       ]),
       day('2026-05-01', 'Fri', 'study', [
-        { id: 'd_2026-05-01_1', text: '20 UWorld Qs OR rest if post-call', xp: 20 },
+        { id: 'd_2026-05-01_1', text: 'UWorld Qs OR rest if post-call', xp: 20, qTarget: 20 },
         { id: 'd_2026-05-01_2', text: 'Light review', xp: 10 }
       ]),
       day('2026-05-02', 'Sat', 'study', [
-        { id: 'd_2026-05-02_1', text: '30 UWorld Qs (longer block)', meta: '~2 hr', xp: 30 },
+        { id: 'd_2026-05-02_1', text: 'UWorld Qs (longer block)', meta: '~2 hr', xp: 30, qTarget: 30, catchUpEligible: true },
         { id: 'd_2026-05-02_2', text: '1 hr Biostats subject review', xp: 25 }
       ]),
       day('2026-05-03', 'Sun', 'rest', [
-        { id: 'd_2026-05-03_1', text: 'Rest OR catch-up Qs (max 25)', xp: 15 },
+        { id: 'd_2026-05-03_1', text: 'Rest OR catch-up Qs (max 25)', xp: 15, qTarget: 25, catchUpEligible: true },
         { id: 'd_2026-05-03_2', text: 'Optional: 1 Divine Intervention podcast', meta: 'Episode 14 or 67', xp: 10 }
       ])
     ],
@@ -1539,19 +1767,19 @@ const WEEKS = [
     dailyQ: '20–25', weeklyQ: '~150 Qs',
     dayPlans: [
       day('2026-05-04', 'Mon', 'study', [
-        { id: 'd_2026-05-04_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-04_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
         { id: 'd_2026-05-04_2', text: 'Review', xp: 10 }
       ]),
       day('2026-05-05', 'Tue', 'study', [
-        { id: 'd_2026-05-05_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-05_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
         { id: 'd_2026-05-05_2', text: 'Review', xp: 10 }
       ]),
       day('2026-05-06', 'Wed', 'study', [
-        { id: 'd_2026-05-06_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-06_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
         { id: 'd_2026-05-06_2', text: 'Review', xp: 10 }
       ]),
       day('2026-05-07', 'Thu', 'study', [
-        { id: 'd_2026-05-07_1', text: '25 UWorld Qs', xp: 25 },
+        { id: 'd_2026-05-07_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
         { id: 'd_2026-05-07_2', text: 'Review', xp: 10 }
       ]),
       day('2026-05-08', 'Fri', 'rest', [
@@ -1579,22 +1807,22 @@ const WEEKS = [
     dailyQ: '20–25', weeklyQ: '~150 Qs',
     dayPlans: [
       day('2026-05-11', 'Mon', 'study', [
-        { id: 'd_2026-05-11_1', text: '25 UWorld Qs + review', xp: 25 }
+        { id: 'd_2026-05-11_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
       ]),
       day('2026-05-12', 'Tue', 'study', [
-        { id: 'd_2026-05-12_1', text: '25 UWorld Qs + review', xp: 25 }
+        { id: 'd_2026-05-12_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
       ]),
       day('2026-05-13', 'Wed', 'study', [
-        { id: 'd_2026-05-13_1', text: '25 UWorld Qs + review', xp: 25 }
+        { id: 'd_2026-05-13_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
       ]),
       day('2026-05-14', 'Thu', 'study', [
-        { id: 'd_2026-05-14_1', text: '25 UWorld Qs + review', xp: 25 }
+        { id: 'd_2026-05-14_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
       ]),
       day('2026-05-15', 'Fri', 'rest', [
         { id: 'd_2026-05-15_1', text: 'Light review or off (post-call)', xp: 10 }
       ]),
       day('2026-05-16', 'Sat', 'study', [
-        { id: 'd_2026-05-16_1', text: '40 UWorld Qs (build buffer)', xp: 40 },
+        { id: 'd_2026-05-16_1', text: 'UWorld Qs (build buffer)', xp: 40, qTarget: 40, catchUpEligible: true },
         { id: 'd_2026-05-16_2', text: '1 hr Biostats review', xp: 25 }
       ]),
       day('2026-05-17', 'Sun', 'study', [
@@ -1615,29 +1843,29 @@ const WEEKS = [
     dailyQ: '35–40', weeklyQ: '~245 Qs',
     dayPlans: [
       day('2026-05-18', 'Mon', 'study', [
-        { id: 'd_2026-05-18_1', text: '40 UWorld Qs', meta: '~2.5 hr', xp: 40 }
+        { id: 'd_2026-05-18_1', text: 'UWorld Qs', meta: '~2.5 hr', xp: 40, qTarget: 40 }
       ]),
       day('2026-05-19', 'Tue', 'study', [
-        { id: 'd_2026-05-19_1', text: '40 UWorld Qs', xp: 40 }
+        { id: 'd_2026-05-19_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
       ]),
       day('2026-05-20', 'Wed', 'study', [
-        { id: 'd_2026-05-20_1', text: '40 UWorld Qs', xp: 40 },
+        { id: 'd_2026-05-20_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
         { id: 'd_2026-05-20_2', text: '⚔ FIRST CCS CASE — interface practice', meta: 'BOSS · big milestone', xp: 75, priority: true }
       ]),
       day('2026-05-21', 'Thu', 'study', [
-        { id: 'd_2026-05-21_1', text: '40 UWorld Qs', xp: 40 }
+        { id: 'd_2026-05-21_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
       ]),
       day('2026-05-22', 'Fri', 'study', [
-        { id: 'd_2026-05-22_1', text: '30 UWorld Qs', xp: 30 },
+        { id: 'd_2026-05-22_1', text: 'UWorld Qs', xp: 30, qTarget: 30 },
         { id: 'd_2026-05-22_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-05-23', 'Sat', 'study', [
-        { id: 'd_2026-05-23_1', text: '55 UWorld Qs', meta: 'Bigger weekend block', xp: 55 },
+        { id: 'd_2026-05-23_1', text: 'UWorld Qs', meta: 'Bigger weekend block', xp: 55, qTarget: 55, catchUpEligible: true },
         { id: 'd_2026-05-23_2', text: '1 CCS case', xp: 30 },
         { id: 'd_2026-05-23_3', text: 'Biostats deep dive (1.5 hr)', meta: 'NNT, sens/spec, study design', xp: 30 }
       ]),
       day('2026-05-24', 'Sun', 'rest', [
-        { id: 'd_2026-05-24_1', text: 'Rest OR catch-up + 1 CCS case', xp: 25 }
+        { id: 'd_2026-05-24_1', text: 'Rest OR catch-up + 1 CCS case', xp: 25, qTarget: 30, catchUpEligible: true }
       ])
     ],
     notes: [
@@ -1653,17 +1881,17 @@ const WEEKS = [
     dailyQ: '35–40', weeklyQ: '~245 Qs',
     dayPlans: [
       day('2026-05-25', 'Mon', 'study', [
-        { id: 'd_2026-05-25_1', text: '40 UWorld Qs', xp: 40 }
+        { id: 'd_2026-05-25_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
       ]),
       day('2026-05-26', 'Tue', 'study', [
-        { id: 'd_2026-05-26_1', text: '40 UWorld Qs', xp: 40 },
+        { id: 'd_2026-05-26_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
         { id: 'd_2026-05-26_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-05-27', 'Wed', 'study', [
-        { id: 'd_2026-05-27_1', text: '40 UWorld Qs', xp: 40 }
+        { id: 'd_2026-05-27_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
       ]),
       day('2026-05-28', 'Thu', 'study', [
-        { id: 'd_2026-05-28_1', text: '40 UWorld Qs', xp: 40 },
+        { id: 'd_2026-05-28_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
         { id: 'd_2026-05-28_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-05-29', 'Fri', 'rest', [
@@ -1691,21 +1919,21 @@ const WEEKS = [
     dailyQ: '40–50', weeklyQ: '~300 Qs',
     dayPlans: [
       day('2026-06-01', 'Mon', 'study', [
-        { id: 'd_2026-06-01_1', text: '50 UWorld Qs', xp: 50 },
+        { id: 'd_2026-06-01_1', text: 'UWorld Qs', xp: 50, qTarget: 50 },
         { id: 'd_2026-06-01_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-06-02', 'Tue', 'study', [
-        { id: 'd_2026-06-02_1', text: '50 UWorld Qs', xp: 50 }
+        { id: 'd_2026-06-02_1', text: 'UWorld Qs', xp: 50, qTarget: 50 }
       ]),
       day('2026-06-03', 'Wed', 'study', [
-        { id: 'd_2026-06-03_1', text: '50 UWorld Qs', xp: 50 },
+        { id: 'd_2026-06-03_1', text: 'UWorld Qs', xp: 50, qTarget: 50 },
         { id: 'd_2026-06-03_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-06-04', 'Thu', 'study', [
-        { id: 'd_2026-06-04_1', text: '50 UWorld Qs', xp: 50 }
+        { id: 'd_2026-06-04_1', text: 'UWorld Qs', xp: 50, qTarget: 50 }
       ]),
       day('2026-06-05', 'Fri', 'study', [
-        { id: 'd_2026-06-05_1', text: '⚔ Finish remaining UWorld Qs — TARGET: 100% complete', meta: 'BOSS · QBank slain', xp: 200, priority: true }
+        { id: 'd_2026-06-05_1', text: '⚔ Finish remaining UWorld Qs — TARGET: 100% complete', meta: 'BOSS · QBank slain', xp: 200, priority: true, catchUpEligible: true }
       ]),
       day('2026-06-06', 'Sat', 'assessment', [
         { id: 'd_2026-06-06_1', text: '⚔ UWSA 2 (or NBME 7) — Day 1 length', meta: 'BOSS · checkpoint', xp: 150, assessment: true },
@@ -1728,17 +1956,17 @@ const WEEKS = [
     dailyQ: '10–15 (or rest)', weeklyQ: '~70 Qs',
     dayPlans: [
       day('2026-06-08', 'Mon', 'rest', [
-        { id: 'd_2026-06-08_1', text: '15 Qs OR rest (sleep > studying)', xp: 15 }
+        { id: 'd_2026-06-08_1', text: 'Qs OR rest (sleep > studying)', xp: 15, qTarget: 15 }
       ]),
       day('2026-06-09', 'Tue', 'rest', [
-        { id: 'd_2026-06-09_1', text: '15 Qs OR rest', xp: 15 }
+        { id: 'd_2026-06-09_1', text: 'Qs OR rest', xp: 15, qTarget: 15 }
       ]),
       day('2026-06-10', 'Wed', 'rest', [
-        { id: 'd_2026-06-10_1', text: '15 Qs OR rest', xp: 15 },
+        { id: 'd_2026-06-10_1', text: 'Qs OR rest', xp: 15, qTarget: 15 },
         { id: 'd_2026-06-10_2', text: 'Drug ads (10 min) — pattern recognition', xp: 10 }
       ]),
       day('2026-06-11', 'Thu', 'rest', [
-        { id: 'd_2026-06-11_1', text: '15 Qs OR rest', xp: 15 },
+        { id: 'd_2026-06-11_1', text: 'Qs OR rest', xp: 15, qTarget: 15 },
         { id: 'd_2026-06-11_2', text: 'Ethics vignettes (UWorld)', xp: 15 }
       ]),
       day('2026-06-12', 'Fri', 'rest', [
@@ -1748,7 +1976,7 @@ const WEEKS = [
         { id: 'd_2026-06-13_1', text: '⚔ RECOVER — sleep is the priority', meta: 'PRIORITY', xp: 50, priority: true }
       ]),
       day('2026-06-14', 'Sun', 'study', [
-        { id: 'd_2026-06-14_1', text: 'If recovered: 50 Qs + 2 CCS cases', meta: 'Only if rested', xp: 50 }
+        { id: 'd_2026-06-14_1', text: 'If recovered: Qs + 2 CCS cases', meta: 'Only if rested', xp: 50, qTarget: 50, catchUpEligible: true }
       ])
     ],
     notes: [
@@ -1846,6 +2074,7 @@ function loadState() {
       const parsed = JSON.parse(raw);
       return {
         tasks: parsed.tasks || {},
+        qProgress: parsed.qProgress || {},
         qbank: parsed.qbank ?? 715,
         ccs: parsed.ccs ?? 0,
         xp: parsed.xp ?? 0,
@@ -1856,6 +2085,7 @@ function loadState() {
   } catch (e) {}
   return {
     tasks: {},
+    qProgress: {},
     qbank: 715, // real number from user
     ccs: 0,
     xp: 0,
@@ -1984,6 +2214,105 @@ function weekProgress(week) {
 }
 
 // ===========================================
+// Q-DEBT SYSTEM
+// ===========================================
+// A Q-task has qTarget. Progress tracked in state.qProgress[id].
+// Debt = sum of (qTarget - qProgress) for past Q-tasks where progress < target.
+// Only counts past (before today) since today/future tasks aren't "owed" yet.
+
+function getQTasks() {
+  const all = [];
+  WEEKS.forEach(w => {
+    w.dayPlans.forEach(dp => {
+      dp.tasks.forEach(t => {
+        if (t.qTarget && t.qTarget > 0) {
+          all.push({ ...t, date: dp.date, weekN: w.n });
+        }
+      });
+    });
+  });
+  return all;
+}
+
+function getQProgress(taskId) {
+  return state.qProgress[taskId] || 0;
+}
+
+function getQDebt() {
+  // Sum of (target - progress) for past Q tasks that aren't fully completed
+  const today = getTodayKey();
+  let debt = 0;
+  getQTasks().forEach(t => {
+    if (t.date < today) {
+      const progress = getQProgress(t.id);
+      const remaining = Math.max(0, t.qTarget - progress);
+      debt += remaining;
+    }
+  });
+  return debt;
+}
+
+function getCatchUpEligibleDays() {
+  // Returns array of upcoming catchUpEligible days that haven't passed
+  const today = getTodayKey();
+  const result = [];
+  WEEKS.forEach(w => {
+    w.dayPlans.forEach(dp => {
+      if (dp.date >= today) {
+        dp.tasks.forEach(t => {
+          if (t.catchUpEligible) {
+            result.push({ date: dp.date, label: dp.label, taskId: t.id, weekN: w.n });
+          }
+        });
+      }
+    });
+  });
+  return result;
+}
+
+function getNextCatchUpDay() {
+  const days = getCatchUpEligibleDays();
+  return days.length > 0 ? days[0] : null;
+}
+
+// Adjust progress on a Q-task. Auto-checks the task if target reached.
+function adjustQProgress(taskId, delta, qTarget) {
+  const current = getQProgress(taskId);
+  const newVal = Math.max(0, current + delta);
+  state.qProgress[taskId] = newVal;
+
+  // Auto-update the global QBank counter (so Stats page reflects it)
+  if (delta !== 0) {
+    state.qbank = Math.max(0, Math.min(2136, state.qbank + delta));
+  }
+
+  // Award XP proportionally
+  if (delta > 0) {
+    awardXP(Math.floor(delta / 5), `+${delta} Qs logged`);
+  } else if (delta < 0) {
+    deductXP(Math.floor(Math.abs(delta) / 5));
+  }
+
+  // Auto-check the task once target reached
+  if (newVal >= qTarget && !state.tasks[taskId]) {
+    state.tasks[taskId] = true;
+    // Award completion XP bonus (find original task XP)
+    const task = getQTasks().find(t => t.id === taskId);
+    if (task && task.xp) {
+      // Already awarded proportional, give a small completion bonus
+      awardXP(5, '✓ Task complete');
+    }
+  } else if (newVal < qTarget && state.tasks[taskId]) {
+    // If they decremented below target, uncheck
+    state.tasks[taskId] = false;
+  }
+
+  updateStreak();
+  saveState();
+  rerender();
+}
+
+// ===========================================
 // XP & STREAKS
 // ===========================================
 function awardXP(amount, label) {
@@ -1999,11 +2328,11 @@ function deductXP(amount) {
 
 function updateStreak() {
   const today = getTodayKey();
-  // A day "counts" toward streak if at least one task is done that day
+  // A day "counts" toward streak if at least one task is done OR Q progress logged
   const todayPlan = getDayPlan(today);
   if (!todayPlan) return;
 
-  const anyDone = todayPlan.dayPlan.tasks.some(t => state.tasks[t.id]);
+  const anyDone = todayPlan.dayPlan.tasks.some(t => state.tasks[t.id] || (t.qTarget && getQProgress(t.id) > 0));
   if (anyDone && !state.streakDays.includes(today)) {
     state.streakDays.push(today);
     saveState();
@@ -2147,7 +2476,41 @@ function renderToday() {
   const totalToday = dayPlan.tasks.length;
   const doneToday = dayPlan.tasks.filter(t => state.tasks[t.id]).length;
 
-  let html = `<div class="section-label">⚔ Today's Quests <span class="count">${doneToday}/${totalToday}</span></div>`;
+  // Q-debt banner (if any debt exists)
+  const qDebt = getQDebt();
+  let html = '';
+  if (qDebt > 0) {
+    const nextCU = getNextCatchUpDay();
+    const cuText = nextCU
+      ? `Next catch-up day: <em>${dateFmt(new Date(nextCU.date + 'T00:00:00'), 'weekday')}, ${dateFmt(new Date(nextCU.date + 'T00:00:00'), 'short')}</em> (Week ${nextCU.weekN})`
+      : 'No more catch-up days — fold into today\'s session.';
+    html += `
+      <div class="debt-banner">
+        <div class="debt-banner-header">
+          <div class="debt-label">Q-Debt</div>
+          <div class="debt-num">+${qDebt}</div>
+        </div>
+        <div class="debt-text">
+          You're carrying <em>${qDebt} questions</em> from prior days. ${cuText}
+        </div>
+      </div>
+    `;
+  }
+
+  // Today's quests section
+  const isCatchUpDay = dayPlan.tasks.some(t => t.catchUpEligible);
+  const catchUpBadge = isCatchUpDay ? '<span class="catch-up-indicator">Catch-Up Day</span>' : '';
+  html += `<div class="section-label">⚔ Today's Quests${catchUpBadge} <span class="count">${doneToday}/${totalToday}</span></div>`;
+
+  // If catch-up day AND debt, show suggestion
+  if (isCatchUpDay && qDebt > 0) {
+    html += `
+      <div class="catch-up-suggestion">
+        ⤳ <em>Catch-up suggestion:</em> Add ${qDebt} extra Qs today to clear your debt. Use the <strong>+5</strong> stepper on any Q-task once you exceed its target — overflow counts toward your overall total.
+      </div>
+    `;
+  }
+
   dayPlan.tasks.forEach(t => {
     html += renderTaskHTML(t);
   });
@@ -2173,6 +2536,48 @@ function renderToday() {
 
 function renderTaskHTML(t, isDay) {
   const isDone = !!state.tasks[t.id];
+
+  // Q-task with stepper
+  if (t.qTarget && t.qTarget > 0) {
+    const progress = getQProgress(t.id);
+    const pct = Math.min(100, (progress / t.qTarget) * 100);
+    const isComplete = progress >= t.qTarget;
+    const isPartial = progress > 0 && progress < t.qTarget;
+    const isOver = progress > t.qTarget;
+
+    const classes = ['task', 'q-task'];
+    if (isComplete) classes.push('complete');
+    else if (isPartial) classes.push('partial');
+    if (t.priority) classes.push('priority');
+
+    const xpTag = t.xp ? `<span class="xp-tag">+${t.xp} XP</span>` : '';
+    const numClass = isComplete && !isOver ? 'complete' : (isOver ? 'over' : '');
+
+    return `
+      <div class="${classes.join(' ')}">
+        <div class="q-row">
+          <div class="checkbox" onclick="toggleQTaskComplete('${t.id}', ${t.qTarget}, ${t.xp || 25})"></div>
+          <div class="task-content">
+            <div class="task-text">${t.text}</div>
+            <div class="task-meta">${xpTag}${t.meta ? `<span>${t.meta}</span>` : ''}<span style="color: var(--text-dim);">target: ${t.qTarget}</span></div>
+          </div>
+        </div>
+        <div class="q-stepper">
+          <button class="q-step-btn minus" onclick="adjustQProgress('${t.id}', -5, ${t.qTarget})">−5</button>
+          <div class="q-step-display">
+            <div class="q-step-num ${numClass}"><em>${progress}</em> / ${t.qTarget}</div>
+            <div class="q-step-label">questions done</div>
+          </div>
+          <button class="q-step-btn" onclick="adjustQProgress('${t.id}', 5, ${t.qTarget})">+5</button>
+          <div class="q-mini-bar">
+            <div class="q-mini-bar-fill ${isComplete ? 'complete' : ''}" style="width: ${pct}%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Regular binary task
   const classes = ['task'];
   if (isDone) classes.push('done');
   if (t.priority) classes.push('priority');
@@ -2189,6 +2594,33 @@ function renderTaskHTML(t, isDay) {
       </div>
     </div>
   `;
+}
+
+// Toggle a Q-task's "complete" checkbox directly (force complete or reset)
+function toggleQTaskComplete(id, qTarget, xp) {
+  const wasDone = !!state.tasks[id];
+  if (wasDone) {
+    // Uncheck — reset progress
+    state.tasks[id] = false;
+    state.qbank = Math.max(0, state.qbank - getQProgress(id));
+    state.qProgress[id] = 0;
+    deductXP(xp || 10);
+  } else {
+    // Check — fill to target
+    const current = getQProgress(id);
+    const remaining = qTarget - current;
+    if (remaining > 0) {
+      state.qbank = Math.min(2136, state.qbank + remaining);
+      state.qProgress[id] = qTarget;
+      awardXP(Math.floor(remaining / 5) + 5, '✓ Filled to target');
+    } else {
+      awardXP(5, '✓ Marked complete');
+    }
+    state.tasks[id] = true;
+  }
+  updateStreak();
+  saveState();
+  rerender();
 }
 
 function renderPlan() {
@@ -2243,15 +2675,7 @@ function renderPlan() {
                   <div class="day-group-name">${dp.label} · ${dp.type}</div>
                   <div class="day-group-date">${dateFmt(new Date(dp.date + 'T00:00:00'), 'short')}</div>
                 </div>
-                ${dp.tasks.map(t => `
-                  <div class="day-task ${state.tasks[t.id] ? 'done' : ''}" onclick="toggleTask('${t.id}', ${t.xp || 10})">
-                    <div class="checkbox"></div>
-                    <div class="task-content">
-                      <div class="task-text">${t.text}</div>
-                      ${t.meta || t.xp ? `<div class="task-meta">${t.xp ? `<span class="xp-tag">+${t.xp}</span>` : ''}${t.meta ? `<span>${t.meta}</span>` : ''}</div>` : ''}
-                    </div>
-                  </div>
-                `).join('')}
+                ${dp.tasks.map(t => renderTaskHTML(t)).join('')}
               </div>
             `).join('')}
           </div>
@@ -2376,10 +2800,12 @@ function renderStats() {
 
   // QBank counter
   const qPct = Math.min(100, (qDone / qTotal) * 100);
+  const debtForBadge = getQDebt();
+  const debtBadgeHtml = debtForBadge > 0 ? `<span class="debt-badge">${debtForBadge} debt</span>` : '';
   html += `
     <div class="counter-card">
       <div class="counter-header">
-        <div class="counter-title">⬢ UWorld QBank</div>
+        <div class="counter-title">⬢ UWorld QBank${debtBadgeHtml}</div>
         <div class="counter-progress"><em>${qDone}</em> / ${qTotal} (${Math.round(qPct)}%)</div>
       </div>
       <div class="counter-bar">
@@ -2472,7 +2898,19 @@ function adjustCcs(delta) {
   rerender();
 }
 
-function quickQbank() { adjustQbank(25); }
+function quickQbank() {
+  // Try to add 25 to today's first incomplete Q-task; fall back to global counter
+  const today = getTodayKey();
+  const plan = getDayPlan(today);
+  if (plan) {
+    const qTask = plan.dayPlan.tasks.find(t => t.qTarget && getQProgress(t.id) < t.qTarget);
+    if (qTask) {
+      adjustQProgress(qTask.id, 25, qTask.qTarget);
+      return;
+    }
+  }
+  adjustQbank(25);
+}
 function quickCCS() { adjustCcs(1); }
 
 function switchTab(name) {
@@ -2500,6 +2938,7 @@ function resetAll() {
   if (!confirm('Are you really sure? This will delete everything.')) return;
   state = {
     tasks: {},
+    qProgress: {},
     qbank: 715,
     ccs: 0,
     xp: 0,
