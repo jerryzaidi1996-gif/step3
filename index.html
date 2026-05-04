@@ -1668,6 +1668,179 @@
   .anki-card.done .anki-checkbox::after {
     transform: rotate(45deg) scale(1);
   }
+
+  /* ===========================================
+     WEEKLY PROGRESS WIDGET
+     =========================================== */
+  .weekly-progress {
+    background: linear-gradient(135deg, var(--bg-2), var(--bg-1));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .weekly-progress::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .weekly-progress.on-pace::before { background: var(--success); box-shadow: 0 0 8px var(--success-glow); }
+  .weekly-progress.ahead::before { background: var(--xp); box-shadow: 0 0 8px var(--xp-glow); }
+  .weekly-progress.slightly-behind::before { background: var(--warn); }
+  .weekly-progress.behind::before { background: var(--danger); box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+
+  .wp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+
+  .wp-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .wp-label::before {
+    content: '⬢';
+  }
+
+  .wp-status {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+
+  .wp-status.on-pace { background: rgba(74, 222, 128, 0.15); color: var(--success); }
+  .wp-status.ahead { background: rgba(96, 165, 250, 0.15); color: var(--xp); }
+  .wp-status.slightly-behind { background: rgba(245, 158, 11, 0.15); color: var(--warn); }
+  .wp-status.behind { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+  .wp-numbers {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 8px 0 6px;
+  }
+
+  .wp-progress-num {
+    font-size: 22px;
+    color: var(--text);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .wp-progress-num em {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  .wp-target-num {
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .wp-bar-container {
+    position: relative;
+    height: 10px;
+    margin: 8px 0 4px;
+  }
+
+  .wp-bar {
+    height: 100%;
+    background: var(--bg);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+
+  .wp-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+
+  .wp-bar-fill.on-pace {
+    background: linear-gradient(90deg, #15803d, var(--success));
+    box-shadow: 0 0 8px var(--success-glow);
+  }
+  .wp-bar-fill.ahead {
+    background: linear-gradient(90deg, #2563eb, var(--xp));
+    box-shadow: 0 0 10px var(--xp-glow);
+  }
+  .wp-bar-fill.slightly-behind {
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+  .wp-bar-fill.behind {
+    background: linear-gradient(90deg, #b45309, var(--warn));
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+  }
+
+  /* Pace marker — vertical line where you "should be" */
+  .wp-pace-marker {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: var(--text);
+    z-index: 2;
+    box-shadow: 0 0 4px rgba(255,255,255,0.3);
+  }
+
+  .wp-pace-marker::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -3px;
+    width: 8px;
+    height: 4px;
+    background: var(--text);
+    border-radius: 2px 2px 0 0;
+  }
+
+  .wp-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .wp-delta {
+    font-weight: 700;
+  }
+
+  .wp-delta.positive { color: var(--success); }
+  .wp-delta.negative { color: var(--warn); }
+  .wp-delta.danger { color: var(--danger); }
+  .wp-delta.neutral { color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -1781,8 +1954,8 @@
 // ===========================================
 const TEST_DATE = new Date('2026-06-27T08:00:00');
 const TEST_DATE_2 = new Date('2026-06-30T08:00:00');
-const PLAN_START = new Date('2026-04-29T00:00:00');
-const STORAGE_KEY = 'step3_tracker_v2';
+const PLAN_START = new Date('2026-05-03T00:00:00');
+const STORAGE_KEY = 'step3_tracker_v3';
 
 // XP per task type
 const XP_TASK = 10;
@@ -1840,123 +2013,112 @@ function day(dateStr, label, type, tasks) {
 }
 
 const WEEKS = [
-  // ============ WEEK 1: Apr 29 (Wed) - May 3 (Sun) ============
+  // ============ WEEK 0 (PRE): Sun May 3 ============
   {
-    n: 1, title: "Awakening",
-    start: '2026-04-29', end: '2026-05-03',
-    rotation: 'Wards · Week 1 of 3',
-    dailyQ: '20–25', weeklyQ: '~110 Qs (partial week)',
+    n: 0, title: "Day Zero",
+    start: '2026-05-03', end: '2026-05-03',
+    rotation: 'Pre-Plan · Sunday',
+    dailyQ: '25', weeklyQ: '25 Qs',
     dayPlans: [
-      day('2026-04-29', 'Wed', 'study', [
-        { id: 'd_2026-04-29_1', text: 'UWorld Qs (random, tutored)', meta: '~75 min', xp: 25, qTarget: 20 },
-        { id: 'd_2026-04-29_2', text: 'Review all Qs (correct + incorrect)', xp: 10 },
-        { id: 'd_2026-04-29_3', text: 'Schedule NBME Free 120 for May 9–10', meta: 'PRIORITY · do this today', xp: 25, priority: true }
-      ]),
-      day('2026-04-30', 'Thu', 'study', [
-        { id: 'd_2026-04-30_1', text: 'UWorld Qs', meta: '~90 min', xp: 25, qTarget: 25 },
-        { id: 'd_2026-04-30_2', text: 'Review all Qs', xp: 10 }
-      ]),
-      day('2026-05-01', 'Fri', 'study', [
-        { id: 'd_2026-05-01_1', text: 'UWorld Qs OR rest if post-call', xp: 20, qTarget: 20 },
-        { id: 'd_2026-05-01_2', text: 'Light review', xp: 10 }
-      ]),
-      day('2026-05-02', 'Sat', 'study', [
-        { id: 'd_2026-05-02_1', text: 'UWorld Qs (longer block)', meta: '~2 hr', xp: 30, qTarget: 30, catchUpEligible: true },
-        { id: 'd_2026-05-02_2', text: '1 hr Biostats subject review', xp: 25 }
-      ]),
-      day('2026-05-03', 'Sun', 'rest', [
-        { id: 'd_2026-05-03_1', text: 'Rest OR catch-up Qs (max 25)', xp: 15, qTarget: 25, catchUpEligible: true },
-        { id: 'd_2026-05-03_2', text: 'Optional: 1 Divine Intervention podcast', meta: 'Episode 14 or 67', xp: 10 }
+      day('2026-05-03', 'Sun', 'study', [
+        { id: 'd_2026-05-03_1', text: 'UWorld Qs (random, tutored, timed)', meta: 'Establish baseline pace', xp: 25, qTarget: 25 },
+        { id: 'd_2026-05-03_2', text: 'Schedule NBME Free 120 for Sat May 16', meta: 'PRIORITY · book it today', xp: 25, priority: true },
+        { id: 'd_2026-05-03_3', text: 'Set up CCS world account (UWorld)', meta: 'Familiarize before starting cases', xp: 15 }
       ])
     ],
     notes: [
-      { type: 'info', label: 'Mode setting', text: 'Use Random + Tutored + Timed (1 min/Q). Random > systems-based for Step 3 because the real exam mixes everything.' },
-      { type: 'warn', label: 'First action today', text: 'Schedule the NBME Free 120 for next weekend (May 9 or 10). Do this BEFORE you start studying tonight.' }
+      { type: 'info', label: 'Today\'s anchor', text: 'Use today as your "set the pace" day. Keep it light — 25 Qs in tutored mode. The bigger goal is to get NBME Free 120 booked for Sat May 16 before bed tonight.' },
+      { type: 'warn', label: 'First action', text: 'Book the NBME Free 120 BEFORE you start studying. It\'s your most important calibration point.' }
     ]
   },
 
-  // ============ WEEK 2: May 4 - May 10 ============
+  // ============ WEEK 1: Mon May 4 - Sun May 10 (Wards) ============
   {
-    n: 2, title: "First Trial",
+    n: 1, title: "Wards · Build Pace",
     start: '2026-05-04', end: '2026-05-10',
-    rotation: 'Wards · Week 2 of 3',
-    dailyQ: '20–25', weeklyQ: '~150 Qs',
+    rotation: 'Wards · 70 hr/wk',
+    dailyQ: '20 weekday / 35 weekend', weeklyQ: '~150 Qs',
     dayPlans: [
       day('2026-05-04', 'Mon', 'study', [
-        { id: 'd_2026-05-04_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
-        { id: 'd_2026-05-04_2', text: 'Review', xp: 10 }
+        { id: 'd_2026-05-04_1', text: 'UWorld Qs (random, tutored)', meta: 'Evening · ~75 min', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-04_2', text: 'Review Qs', xp: 10 }
       ]),
       day('2026-05-05', 'Tue', 'study', [
-        { id: 'd_2026-05-05_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
-        { id: 'd_2026-05-05_2', text: 'Review', xp: 10 }
+        { id: 'd_2026-05-05_1', text: 'UWorld Qs', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-05_2', text: 'Review Qs', xp: 10 }
       ]),
       day('2026-05-06', 'Wed', 'study', [
-        { id: 'd_2026-05-06_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
-        { id: 'd_2026-05-06_2', text: 'Review', xp: 10 }
+        { id: 'd_2026-05-06_1', text: 'UWorld Qs', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-06_2', text: 'Review Qs', xp: 10 }
       ]),
       day('2026-05-07', 'Thu', 'study', [
-        { id: 'd_2026-05-07_1', text: 'UWorld Qs', xp: 25, qTarget: 25 },
-        { id: 'd_2026-05-07_2', text: 'Review', xp: 10 }
+        { id: 'd_2026-05-07_1', text: 'UWorld Qs', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-07_2', text: 'Review Qs', xp: 10 }
       ]),
-      day('2026-05-08', 'Fri', 'rest', [
-        { id: 'd_2026-05-08_1', text: 'Light review only — rest before NBME', meta: 'Sleep early', xp: 15 }
+      day('2026-05-08', 'Fri', 'study', [
+        { id: 'd_2026-05-08_1', text: 'UWorld Qs OR rest if post-call', xp: 20, qTarget: 20 },
+        { id: 'd_2026-05-08_2', text: 'Light review', xp: 10 }
       ]),
-      day('2026-05-09', 'Sat', 'assessment', [
-        { id: 'd_2026-05-09_1', text: '⚔ NBME Free 120 — full exam, simulated conditions', meta: 'BOSS · ~3 hr', xp: 100, assessment: true },
-        { id: 'd_2026-05-09_2', text: 'Log score in tracker', xp: 25 }
+      day('2026-05-09', 'Sat', 'study', [
+        { id: 'd_2026-05-09_1', text: 'UWorld Qs (longer block)', meta: '~2 hr', xp: 35, qTarget: 35, catchUpEligible: true },
+        { id: 'd_2026-05-09_2', text: '1 hr Biostats subject review', xp: 25 }
       ]),
       day('2026-05-10', 'Sun', 'study', [
-        { id: 'd_2026-05-10_1', text: 'Review all incorrect Free 120 Qs', meta: 'Highest yield review of the week', xp: 50, priority: true },
-        { id: 'd_2026-05-10_2', text: '1 hr drug ad practice', xp: 25 }
+        { id: 'd_2026-05-10_1', text: 'UWorld Qs', xp: 35, qTarget: 35, catchUpEligible: true },
+        { id: 'd_2026-05-10_2', text: 'Optional: Divine Intervention podcast', meta: 'Episode 14 or 67', xp: 10 }
       ])
     ],
     notes: [
-      { type: 'warn', label: 'Decision point', text: 'If Free 120 ≥210 → on track. 195–209 → tighten review process. <195 → reassess sleep + review thoroughness, but don\'t panic.' }
+      { type: 'info', label: 'Mode setting', text: 'Use Random + Tutored + Timed (1 min/Q). On 70-hr ward weeks, prioritize sleep over Q-count if you have to choose. 20 Qs/day with thorough review beats 30 Qs cramming.' }
     ]
   },
 
-  // ============ WEEK 3: May 11 - May 17 ============
+  // ============ WEEK 2: May 11 - May 17 (Wards + NBME Free 120) ============
   {
-    n: 3, title: "Wards Wrap",
+    n: 2, title: "Wards · First Calibration",
     start: '2026-05-11', end: '2026-05-17',
-    rotation: 'Wards · Week 3 of 3',
-    dailyQ: '20–25', weeklyQ: '~150 Qs',
+    rotation: 'Wards · 70 hr/wk',
+    dailyQ: '20 weekday / NBME weekend', weeklyQ: '~120 Qs + NBME',
     dayPlans: [
       day('2026-05-11', 'Mon', 'study', [
-        { id: 'd_2026-05-11_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
+        { id: 'd_2026-05-11_1', text: 'UWorld Qs', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-11_2', text: 'Review Qs', xp: 10 }
       ]),
       day('2026-05-12', 'Tue', 'study', [
-        { id: 'd_2026-05-12_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
+        { id: 'd_2026-05-12_1', text: 'UWorld Qs', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-12_2', text: 'Review Qs', xp: 10 }
       ]),
       day('2026-05-13', 'Wed', 'study', [
-        { id: 'd_2026-05-13_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
+        { id: 'd_2026-05-13_1', text: 'UWorld Qs', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-13_2', text: 'Review Qs', xp: 10 }
       ]),
       day('2026-05-14', 'Thu', 'study', [
-        { id: 'd_2026-05-14_1', text: 'UWorld Qs + review', xp: 25, qTarget: 25 }
+        { id: 'd_2026-05-14_1', text: 'UWorld Qs', xp: 25, qTarget: 20 },
+        { id: 'd_2026-05-14_2', text: 'Review Qs', xp: 10 }
       ]),
       day('2026-05-15', 'Fri', 'rest', [
-        { id: 'd_2026-05-15_1', text: 'Light review or off (post-call)', xp: 10 }
+        { id: 'd_2026-05-15_1', text: 'Light review only — rest before NBME', meta: 'Sleep early tonight', xp: 15 }
       ]),
-      day('2026-05-16', 'Sat', 'study', [
-        { id: 'd_2026-05-16_1', text: 'UWorld Qs (build buffer)', xp: 40, qTarget: 40, catchUpEligible: true },
-        { id: 'd_2026-05-16_2', text: '1 hr Biostats review', xp: 25 }
+      day('2026-05-16', 'Sat', 'assessment', [
+        { id: 'd_2026-05-16_1', text: '⚔ NBME Free 120 — full exam, simulated conditions', meta: 'BOSS · ~3 hr', xp: 100, assessment: true },
+        { id: 'd_2026-05-16_2', text: 'Log score for tracking', xp: 25 }
       ]),
       day('2026-05-17', 'Sun', 'study', [
-        { id: 'd_2026-05-17_1', text: 'Read CCS software primer (UWorld)', meta: 'Familiarize before next week', xp: 25, priority: true },
-        { id: 'd_2026-05-17_2', text: 'Identify 3 weakest topics from UWorld dashboard', xp: 25 }
+        { id: 'd_2026-05-17_1', text: 'Review ALL Free 120 incorrects', meta: 'Highest-yield review of the week', xp: 50, priority: true },
+        { id: 'd_2026-05-17_2', text: '1 hr drug ad practice', xp: 25 }
       ])
     ],
     notes: [
-      { type: 'info', label: 'Transition note', text: 'Wards is ending — you\'re about to enter your highest-yield study block. Use the weekend to mentally reset.' }
+      { type: 'warn', label: 'Decision point', text: 'Free 120 ≥210 → on track. 195–209 → tighten review process (you\'re reviewing too fast). <195 → audit sleep + review depth, but don\'t panic — first NBME often runs cold.' }
     ]
   },
 
-  // ============ WEEK 4: May 18 - May 24 ============
+  // ============ WEEK 3: May 18 - May 24 (Clinic) ============
   {
-    n: 4, title: "The Push Begins",
+    n: 3, title: "Clinic · The Push",
     start: '2026-05-18', end: '2026-05-24',
-    rotation: 'Clinic · Week 1 of 2',
-    dailyQ: '35–40', weeklyQ: '~245 Qs',
+    rotation: 'Clinic · 40 hr/wk',
+    dailyQ: '40 weekday / 50 weekend', weeklyQ: '~280 Qs',
     dayPlans: [
       day('2026-05-18', 'Mon', 'study', [
         { id: 'd_2026-05-18_1', text: 'UWorld Qs', meta: '~2.5 hr', xp: 40, qTarget: 40 }
@@ -1969,45 +2131,48 @@ const WEEKS = [
         { id: 'd_2026-05-20_2', text: '⚔ FIRST CCS CASE — interface practice', meta: 'BOSS · big milestone', xp: 75, priority: true }
       ]),
       day('2026-05-21', 'Thu', 'study', [
-        { id: 'd_2026-05-21_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
+        { id: 'd_2026-05-21_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
+        { id: 'd_2026-05-21_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-05-22', 'Fri', 'study', [
-        { id: 'd_2026-05-22_1', text: 'UWorld Qs', xp: 30, qTarget: 30 },
-        { id: 'd_2026-05-22_2', text: '1 CCS case', xp: 30 }
+        { id: 'd_2026-05-22_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
       ]),
       day('2026-05-23', 'Sat', 'study', [
-        { id: 'd_2026-05-23_1', text: 'UWorld Qs', meta: 'Bigger weekend block', xp: 55, qTarget: 55, catchUpEligible: true },
-        { id: 'd_2026-05-23_2', text: '1 CCS case', xp: 30 },
+        { id: 'd_2026-05-23_1', text: 'UWorld Qs (weekend block)', meta: '~3 hr', xp: 50, qTarget: 50, catchUpEligible: true },
+        { id: 'd_2026-05-23_2', text: '2 CCS cases', xp: 60 },
         { id: 'd_2026-05-23_3', text: 'Biostats deep dive (1.5 hr)', meta: 'NNT, sens/spec, study design', xp: 30 }
       ]),
-      day('2026-05-24', 'Sun', 'rest', [
-        { id: 'd_2026-05-24_1', text: 'Rest OR catch-up + 1 CCS case', xp: 25, qTarget: 30, catchUpEligible: true }
+      day('2026-05-24', 'Sun', 'study', [
+        { id: 'd_2026-05-24_1', text: 'UWorld Qs', xp: 60, qTarget: 60, catchUpEligible: true },
+        { id: 'd_2026-05-24_2', text: '1 CCS case', xp: 30 }
       ])
     ],
     notes: [
-      { type: 'info', label: 'CCS strategy', text: 'First CCS cases will feel awkward — that\'s normal. Focus on interface fluency: ordering, advancing time, location changes. Medicine comes second in early cases.' }
+      { type: 'info', label: 'CCS strategy', text: 'First CCS cases will feel awkward — that\'s normal. Focus on interface fluency: ordering, advancing time, location changes. Medicine comes second in early cases.' },
+      { type: 'info', label: 'Why 280 this week', text: 'Clinic = your highest-leverage block. With 30 fewer hours/wk than wards, you have real evening capacity. This week is where you bank questions for the inevitable nights/wedding deficits later.' }
     ]
   },
 
-  // ============ WEEK 5: May 25 - May 31 ============
+  // ============ WEEK 4: May 25 - May 31 (Clinic + UWSA 1) ============
   {
-    n: 5, title: "Mid-Trial",
+    n: 4, title: "Clinic · UWSA 1",
     start: '2026-05-25', end: '2026-05-31',
-    rotation: 'Clinic · Week 2 of 2',
-    dailyQ: '35–40', weeklyQ: '~245 Qs',
+    rotation: 'Clinic · 40 hr/wk',
+    dailyQ: '50 weekday / UWSA Sat', weeklyQ: '~250 Qs + UWSA',
     dayPlans: [
       day('2026-05-25', 'Mon', 'study', [
-        { id: 'd_2026-05-25_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
+        { id: 'd_2026-05-25_1', text: 'UWorld Qs', xp: 50, qTarget: 50 },
+        { id: 'd_2026-05-25_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-05-26', 'Tue', 'study', [
-        { id: 'd_2026-05-26_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
-        { id: 'd_2026-05-26_2', text: '1 CCS case', xp: 30 }
+        { id: 'd_2026-05-26_1', text: 'UWorld Qs', xp: 50, qTarget: 50 }
       ]),
       day('2026-05-27', 'Wed', 'study', [
-        { id: 'd_2026-05-27_1', text: 'UWorld Qs', xp: 40, qTarget: 40 }
+        { id: 'd_2026-05-27_1', text: 'UWorld Qs', xp: 50, qTarget: 50 },
+        { id: 'd_2026-05-27_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-05-28', 'Thu', 'study', [
-        { id: 'd_2026-05-28_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
+        { id: 'd_2026-05-28_1', text: 'UWorld Qs', xp: 50, qTarget: 50 },
         { id: 'd_2026-05-28_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-05-29', 'Fri', 'rest', [
@@ -2018,57 +2183,63 @@ const WEEKS = [
         { id: 'd_2026-05-30_2', text: 'Log score', xp: 25 }
       ]),
       day('2026-05-31', 'Sun', 'study', [
-        { id: 'd_2026-05-31_1', text: 'Review all UWSA 1 incorrects + flagged', xp: 50, priority: true },
-        { id: 'd_2026-05-31_2', text: 'FIP focus: ethics + patient safety/QI', meta: '1 hr UWorld subset', xp: 30 }
+        { id: 'd_2026-05-31_1', text: 'Review ALL UWSA 1 incorrects + flagged', xp: 75, priority: true },
+        { id: 'd_2026-05-31_2', text: 'FIP focus: ethics + patient safety/QI (1 hr)', xp: 30 },
+        { id: 'd_2026-05-31_3', text: '1 CCS case', xp: 30 }
       ])
     ],
     notes: [
-      { type: 'warn', label: 'UWSA interpretation', text: 'UWSA 1 trends slightly LOW vs. real score (typically -5 to -10 points). If you score ≥210 on UWSA 1, you\'re in safe pass territory. Don\'t tank morale on a low number — it\'s not predictive in isolation.' }
+      { type: 'warn', label: 'UWSA interpretation', text: 'UWSA 1 trends slightly LOW vs. real score (typically -5 to -10 points). If you score ≥210, you\'re in safe pass territory. Don\'t tank morale on a low number — it\'s not predictive in isolation.' },
+      { type: 'info', label: 'Heavier Q load', text: 'Bumped Mon-Thu from 40 to 50 Qs each. This week buys you breathing room in the elective push next week.' }
     ]
   },
 
-  // ============ WEEK 6: Jun 1 - Jun 7 ============
+  // ============ WEEK 5: Jun 1 - Jun 7 (Elective - finish QBank) ============
   {
-    n: 6, title: "QBank Slayer",
+    n: 5, title: "Elective · Finish QBank",
     start: '2026-06-01', end: '2026-06-07',
-    rotation: 'Elective · 1 week',
-    dailyQ: '40–50', weeklyQ: '~300 Qs',
+    rotation: 'Elective · 40 hr/wk',
+    dailyQ: '40 weekday / 55 weekend', weeklyQ: '~310 Qs',
     dayPlans: [
       day('2026-06-01', 'Mon', 'study', [
-        { id: 'd_2026-06-01_1', text: 'UWorld Qs', xp: 50, qTarget: 50 },
-        { id: 'd_2026-06-01_2', text: '1 CCS case', xp: 30 }
+        { id: 'd_2026-06-01_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
+        { id: 'd_2026-06-01_2', text: '2 CCS cases', xp: 60 }
       ]),
       day('2026-06-02', 'Tue', 'study', [
-        { id: 'd_2026-06-02_1', text: 'UWorld Qs', xp: 50, qTarget: 50 }
+        { id: 'd_2026-06-02_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
+        { id: 'd_2026-06-02_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-06-03', 'Wed', 'study', [
-        { id: 'd_2026-06-03_1', text: 'UWorld Qs', xp: 50, qTarget: 50 },
-        { id: 'd_2026-06-03_2', text: '1 CCS case', xp: 30 }
+        { id: 'd_2026-06-03_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
+        { id: 'd_2026-06-03_2', text: '2 CCS cases', xp: 60 }
       ]),
       day('2026-06-04', 'Thu', 'study', [
-        { id: 'd_2026-06-04_1', text: 'UWorld Qs', xp: 50, qTarget: 50 }
+        { id: 'd_2026-06-04_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
+        { id: 'd_2026-06-04_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-06-05', 'Fri', 'study', [
-        { id: 'd_2026-06-05_1', text: '⚔ Finish remaining UWorld Qs — TARGET: 100% complete', meta: 'BOSS · QBank slain', xp: 200, priority: true, catchUpEligible: true }
+        { id: 'd_2026-06-05_1', text: 'UWorld Qs', xp: 40, qTarget: 40 },
+        { id: 'd_2026-06-05_2', text: '1 CCS case', xp: 30 }
       ]),
-      day('2026-06-06', 'Sat', 'assessment', [
-        { id: 'd_2026-06-06_1', text: '⚔ UWSA 2 (or NBME 7) — Day 1 length', meta: 'BOSS · checkpoint', xp: 150, assessment: true },
-        { id: 'd_2026-06-06_2', text: 'Review UWSA 2 thoroughly', xp: 50 }
+      day('2026-06-06', 'Sat', 'study', [
+        { id: 'd_2026-06-06_1', text: '⚔ UWorld Qs — push to finish first pass', meta: 'BOSS · target ~65 Qs', xp: 80, qTarget: 65, priority: true, catchUpEligible: true },
+        { id: 'd_2026-06-06_2', text: '1 CCS case', xp: 30 }
       ]),
       day('2026-06-07', 'Sun', 'study', [
-        { id: 'd_2026-06-07_1', text: 'Start UWorld incorrects review', meta: 'Filter "incorrect" in UWorld', xp: 50 }
+        { id: 'd_2026-06-07_1', text: 'UWorld Qs (close out first pass)', xp: 65, qTarget: 65, catchUpEligible: true },
+        { id: 'd_2026-06-07_2', text: 'Review weak areas', xp: 25 }
       ])
     ],
     notes: [
-      { type: 'info', label: 'Score target', text: 'By UWSA 2: aim for ≥215. If you\'re hitting that, the real test will land 5–10 points higher on average. You\'re in great shape.' }
+      { type: 'info', label: 'Push week', text: 'Elective = your dedicated study window before nights. By end of this week you should be at ~95–100% UWorld first pass. Total CCS done by end of week: ~16 (over half done before final review).' }
     ]
   },
 
-  // ============ WEEK 7: Jun 8 - Jun 14 ============
+  // ============ WEEK 6: Jun 8 - Jun 14 (Nights) ============
   {
-    n: 7, title: "Survive the Night",
+    n: 6, title: "Nights · Survive",
     start: '2026-06-08', end: '2026-06-14',
-    rotation: 'Nights · 1 week',
+    rotation: 'Nights · 70 hr/wk',
     dailyQ: '10–15 (or rest)', weeklyQ: '~70 Qs',
     dayPlans: [
       day('2026-06-08', 'Mon', 'rest', [
@@ -2079,75 +2250,79 @@ const WEEKS = [
       ]),
       day('2026-06-10', 'Wed', 'rest', [
         { id: 'd_2026-06-10_1', text: 'Qs OR rest', xp: 15, qTarget: 15 },
-        { id: 'd_2026-06-10_2', text: 'Drug ads (10 min) — pattern recognition', xp: 10 }
+        { id: 'd_2026-06-10_2', text: 'Drug ads (10 min) — pattern recognition only', xp: 10 }
       ]),
       day('2026-06-11', 'Thu', 'rest', [
         { id: 'd_2026-06-11_1', text: 'Qs OR rest', xp: 15, qTarget: 15 },
         { id: 'd_2026-06-11_2', text: 'Ethics vignettes (UWorld)', xp: 15 }
       ]),
       day('2026-06-12', 'Fri', 'rest', [
-        { id: 'd_2026-06-12_1', text: 'Rest', xp: 10 }
+        { id: 'd_2026-06-12_1', text: 'Rest — protect sleep', xp: 10 }
       ]),
       day('2026-06-13', 'Sat', 'rest', [
         { id: 'd_2026-06-13_1', text: '⚔ RECOVER — sleep is the priority', meta: 'PRIORITY', xp: 50, priority: true }
       ]),
       day('2026-06-14', 'Sun', 'study', [
-        { id: 'd_2026-06-14_1', text: 'If recovered: Qs + 2 CCS cases', meta: 'Only if rested', xp: 50, qTarget: 50, catchUpEligible: true }
+        { id: 'd_2026-06-14_1', text: 'If recovered: UWorld incorrects + 2 CCS cases', meta: 'Only if rested', xp: 50, qTarget: 50, catchUpEligible: true }
       ])
     ],
     notes: [
-      { type: 'warn', label: 'No NBMEs this week', text: 'Sleep deprivation tanks scores by 10–15 points. A bad NBME taken on nights will misinform your prep AND wreck your morale. Skip assessments this week — period.' }
+      { type: 'warn', label: 'No NBMEs this week', text: 'Sleep deprivation tanks scores by 10–15 points. A bad NBME taken on nights will misinform your prep AND wreck your morale. Skip assessments this week — period.' },
+      { type: 'info', label: 'Goal flip', text: 'This week\'s job is NOT to study — it\'s to not lose ground. Anki + light Qs only. The QBank should already be done by now.' }
     ]
   },
 
-  // ============ WEEK 8: Jun 15 - Jun 21 ============
+  // ============ WEEK 7: Jun 15 - Jun 21 (Clinic - Review + UWSA 2 / wedding) ============
   {
-    n: 8, title: "Final Sprint I",
+    n: 7, title: "Clinic · Final Sprint I",
     start: '2026-06-15', end: '2026-06-21',
-    rotation: 'Clinic · Dedicated-style',
-    dailyQ: 'Variable — review heavy', weeklyQ: '—',
+    rotation: 'Clinic · 40 hr/wk · WEDDING SAT',
+    dailyQ: 'Review heavy', weeklyQ: 'Incorrects + CCS + UWSA 2',
     dayPlans: [
       day('2026-06-15', 'Mon', 'study', [
-        { id: 'd_2026-06-15_1', text: 'Finish UWorld incorrects (50–80 Qs)', meta: 'Highest-yield review', xp: 75 }
+        { id: 'd_2026-06-15_1', text: 'UWorld incorrects (50–80 Qs)', meta: 'Highest-yield review', xp: 75, qTarget: 60 },
+        { id: 'd_2026-06-15_2', text: '2 CCS cases', xp: 60 }
       ]),
       day('2026-06-16', 'Tue', 'study', [
-        { id: 'd_2026-06-16_1', text: 'Finish incorrects', xp: 50 },
-        { id: 'd_2026-06-16_2', text: '3 CCS cases', xp: 75 }
+        { id: 'd_2026-06-16_1', text: 'UWorld incorrects', xp: 50, qTarget: 50 },
+        { id: 'd_2026-06-16_2', text: '2 CCS cases', xp: 60 }
       ]),
       day('2026-06-17', 'Wed', 'study', [
-        { id: 'd_2026-06-17_1', text: '4 CCS cases', xp: 100 },
-        { id: 'd_2026-06-17_2', text: 'Ethics review', xp: 25 }
+        { id: 'd_2026-06-17_1', text: 'UWorld incorrects', xp: 50, qTarget: 50 },
+        { id: 'd_2026-06-17_2', text: '3 CCS cases', xp: 90 }
       ]),
       day('2026-06-18', 'Thu', 'study', [
-        { id: 'd_2026-06-18_1', text: '4 CCS cases', xp: 100 },
+        { id: 'd_2026-06-18_1', text: '3 CCS cases', xp: 90 },
         { id: 'd_2026-06-18_2', text: 'Biostats deep dive', xp: 30 }
       ]),
       day('2026-06-19', 'Fri', 'study', [
-        { id: 'd_2026-06-19_1', text: '⚔ Final CCS cases — ALL ~30 done', meta: 'BOSS · CCS conquered', xp: 150, priority: true },
-        { id: 'd_2026-06-19_2', text: 'Drug ads review', xp: 20 }
+        { id: 'd_2026-06-19_1', text: '⚔ Final CCS cases — ALL ~30 done', meta: 'BOSS · CCS conquered (target: 2-3 cases)', xp: 150, priority: true },
+        { id: 'd_2026-06-19_2', text: 'Drug ads + ethics review', xp: 25 }
       ]),
-      day('2026-06-20', 'Sat', 'assessment', [
-        { id: 'd_2026-06-20_1', text: '⚔ FINAL NBME — UWSA 3 or NBME 8, full Day 1', meta: 'BOSS · final dress rehearsal', xp: 200, assessment: true },
-        { id: 'd_2026-06-20_2', text: 'Log score — aim ≥220', xp: 25 }
+      day('2026-06-20', 'Sat', 'rest', [
+        { id: 'd_2026-06-20_1', text: '💍 WEDDING DAY — no studying, enjoy', meta: 'Off-duty by design', xp: 50, priority: true }
       ]),
-      day('2026-06-21', 'Sun', 'study', [
-        { id: 'd_2026-06-21_1', text: 'Review final NBME — list weak areas', xp: 50, priority: true }
+      day('2026-06-21', 'Sun', 'assessment', [
+        { id: 'd_2026-06-21_1', text: '⚔ UWSA 2 or NBME 8 — full Day 1 length', meta: 'BOSS · final dress rehearsal', xp: 200, assessment: true },
+        { id: 'd_2026-06-21_2', text: 'Log score — aim ≥220 projected', xp: 25 }
       ])
     ],
     notes: [
+      { type: 'info', label: 'CCS distribution', text: 'You should have ~18 CCS cases done by now. This week wraps the remaining ~12 with Mon (2), Tue (2), Wed (3), Thu (3), Fri (2-3). No single day exceeds 3 cases.' },
+      { type: 'info', label: 'Wedding strategy', text: 'Saturday is genuinely off — don\'t bring flashcards, don\'t do mental Qs, don\'t feel guilty. Coming back fresh on Sunday for UWSA 2 is more valuable than 4 hours of distracted studying.' },
       { type: 'info', label: 'Score interpretation', text: 'Final NBME ≥220 = pass with comfortable margin. ≥210 = pass. <205 = unusual at this stage but still passable; focus final week on weak areas.' }
     ]
   },
 
-  // ============ WEEK 9: Jun 22 - Jun 30 (test week, 9 days) ============
+  // ============ WEEK 8: Jun 22 - Jun 30 (Test Week) ============
   {
-    n: 9, title: "Final Boss",
+    n: 8, title: "Final Boss",
     start: '2026-06-22', end: '2026-06-30',
-    rotation: 'Test Week',
-    dailyQ: 'Light targeted review', weeklyQ: '—',
+    rotation: 'Clinic · Test Week',
+    dailyQ: 'Targeted taper', weeklyQ: '—',
     dayPlans: [
       day('2026-06-22', 'Mon', 'study', [
-        { id: 'd_2026-06-22_1', text: 'Review weak areas from final NBME', meta: 'Max 2 hr study', xp: 50 }
+        { id: 'd_2026-06-22_1', text: 'Review weak areas from UWSA 2', meta: 'Max 2 hr study', xp: 50 }
       ]),
       day('2026-06-23', 'Tue', 'study', [
         { id: 'd_2026-06-23_1', text: 'Redo any shaky CCS cases', meta: 'Software fluency check', xp: 50 }
@@ -2191,7 +2366,7 @@ function loadState() {
       return {
         tasks: parsed.tasks || {},
         qProgress: parsed.qProgress || {},
-        qbank: parsed.qbank ?? 715,
+        qbank: parsed.qbank ?? 780,
         ccs: parsed.ccs ?? 0,
         xp: parsed.xp ?? 0,
         streakDays: parsed.streakDays || [],
@@ -2203,7 +2378,7 @@ function loadState() {
   return {
     tasks: {},
     qProgress: {},
-    qbank: 715, // real number from user
+    qbank: 780, // updated baseline May 3
     ccs: 0,
     xp: 0,
     streakDays: [],
@@ -2307,10 +2482,9 @@ function getNextBoss() {
   const today = getCurrentDate();
   // Bosses are: NBMEs and test days
   const bosses = [
-    { name: 'NBME Free 120', date: new Date('2026-05-09T08:00:00'), type: 'nbme' },
+    { name: 'NBME Free 120', date: new Date('2026-05-16T08:00:00'), type: 'nbme' },
     { name: 'UWSA 1', date: new Date('2026-05-30T08:00:00'), type: 'nbme' },
-    { name: 'UWSA 2 / NBME 7', date: new Date('2026-06-06T08:00:00'), type: 'nbme' },
-    { name: 'UWSA 3 / NBME 8', date: new Date('2026-06-20T08:00:00'), type: 'nbme' },
+    { name: 'UWSA 2 / NBME 8', date: new Date('2026-06-21T08:00:00'), type: 'nbme' },
     { name: 'Day 1 (CFA)', date: TEST_DATE, type: 'test' },
     { name: 'Day 2 (ACM)', date: TEST_DATE_2, type: 'test' }
   ];
@@ -2391,6 +2565,46 @@ function getCatchUpEligibleDays() {
 function getNextCatchUpDay() {
   const days = getCatchUpEligibleDays();
   return days.length > 0 ? days[0] : null;
+}
+
+// Sum Q targets and progress for a given week
+function getWeekQStats(week) {
+  let target = 0;
+  let progress = 0;
+  let targetThruToday = 0;
+  let progressThruToday = 0;
+  const today = getTodayKey();
+
+  week.dayPlans.forEach(dp => {
+    dp.tasks.forEach(t => {
+      if (t.qTarget && t.qTarget > 0) {
+        target += t.qTarget;
+        progress += getQProgress(t.id);
+        if (dp.date <= today) {
+          targetThruToday += t.qTarget;
+          progressThruToday += getQProgress(t.id);
+        }
+      }
+    });
+  });
+
+  // Pacing: how are we doing vs where we should be by today
+  const paceDelta = progressThruToday - targetThruToday;
+  let paceStatus = 'on-pace';
+  if (paceDelta < -20) paceStatus = 'behind';
+  else if (paceDelta < 0) paceStatus = 'slightly-behind';
+  else if (paceDelta > 20) paceStatus = 'ahead';
+
+  return {
+    target,
+    progress,
+    targetThruToday,
+    progressThruToday,
+    paceDelta,
+    paceStatus,
+    pct: target > 0 ? (progress / target) * 100 : 0,
+    pacePct: targetThruToday > 0 ? (progressThruToday / targetThruToday) * 100 : 100
+  };
 }
 
 // ===========================================
@@ -2675,6 +2889,58 @@ function renderToday() {
     </div>
   `;
 
+  // Weekly progress widget (only show if week has Q targets)
+  const wkStats = getWeekQStats(week);
+  if (wkStats.target > 0) {
+    const fillPct = Math.min(100, wkStats.pct);
+    const paceMarkerPct = wkStats.target > 0
+      ? Math.min(100, (wkStats.targetThruToday / wkStats.target) * 100)
+      : 0;
+
+    let statusLabel = 'On Pace';
+    if (wkStats.paceStatus === 'ahead') statusLabel = 'Ahead';
+    else if (wkStats.paceStatus === 'slightly-behind') statusLabel = 'Catch Up';
+    else if (wkStats.paceStatus === 'behind') statusLabel = 'Behind';
+
+    let deltaClass = 'neutral';
+    let deltaText = '';
+    if (wkStats.paceDelta > 0) {
+      deltaClass = 'positive';
+      deltaText = `+${wkStats.paceDelta} ahead of pace`;
+    } else if (wkStats.paceDelta < -20) {
+      deltaClass = 'danger';
+      deltaText = `${wkStats.paceDelta} behind pace`;
+    } else if (wkStats.paceDelta < 0) {
+      deltaClass = 'negative';
+      deltaText = `${wkStats.paceDelta} behind pace`;
+    } else {
+      deltaText = 'Right on pace';
+    }
+
+    html += `
+      <div class="weekly-progress ${wkStats.paceStatus}">
+        <div class="wp-header">
+          <div class="wp-label">Week ${week.n} · QBank</div>
+          <div class="wp-status ${wkStats.paceStatus}">${statusLabel}</div>
+        </div>
+        <div class="wp-numbers">
+          <div class="wp-progress-num"><em>${wkStats.progress}</em> / ${wkStats.target} Qs</div>
+          <div class="wp-target-num">${Math.round(fillPct)}% of week</div>
+        </div>
+        <div class="wp-bar-container">
+          <div class="wp-bar">
+            <div class="wp-bar-fill ${wkStats.paceStatus}" style="width: ${fillPct}%"></div>
+          </div>
+          ${paceMarkerPct > 0 && paceMarkerPct < 100 ? `<div class="wp-pace-marker" style="left: ${paceMarkerPct}%"></div>` : ''}
+        </div>
+        <div class="wp-footer">
+          <span>Pace target: ${wkStats.targetThruToday} by today</span>
+          <span class="wp-delta ${deltaClass}">${deltaText}</span>
+        </div>
+      </div>
+    `;
+  }
+
   // Today's quests section
   const isCatchUpDay = dayPlan.tasks.some(t => t.catchUpEligible);
   const catchUpBadge = isCatchUpDay ? '<span class="catch-up-indicator">Catch-Up Day</span>' : '';
@@ -2838,6 +3104,25 @@ function renderPlan() {
             <span class="week-pill">${w.weeklyQ}</span>
           </div>
 
+          ${(() => {
+            const ws = getWeekQStats(w);
+            if (ws.target === 0) return '';
+            const pct = Math.min(100, ws.pct);
+            return `
+              <div class="weekly-progress ${ws.paceStatus}" style="margin: 12px 0;">
+                <div class="wp-numbers">
+                  <div class="wp-progress-num"><em>${ws.progress}</em> / ${ws.target} Qs</div>
+                  <div class="wp-target-num">${Math.round(pct)}%</div>
+                </div>
+                <div class="wp-bar-container">
+                  <div class="wp-bar">
+                    <div class="wp-bar-fill ${ws.paceStatus}" style="width: ${pct}%"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          })()}
+
           ${(w.notes || []).map(n => `
             <div class="note-box ${n.type || ''}">
               <div class="note-label">${n.label}</div>
@@ -2878,12 +3163,12 @@ function renderStats() {
   const qTotal = 2136;
   const qDone = state.qbank;
   const qRemaining = qTotal - qDone;
-  const qFinishTarget = new Date('2026-06-05T23:59:59'); // Week 6 end
+  const qFinishTarget = new Date('2026-06-07T23:59:59'); // End of elective week
   const qDaysLeft = Math.max(1, Math.ceil((qFinishTarget - today) / (1000 * 60 * 60 * 24)));
   const qNeededDaily = Math.ceil(qRemaining / qDaysLeft);
 
-  // Expected progress at this point
-  const expectedQ = Math.round(715 + (qTotal - 715) * (daysElapsed / 38));
+  // Expected progress at this point — 35 days from May 3 (start) to Jun 7 (target finish)
+  const expectedQ = Math.round(780 + (qTotal - 780) * (daysElapsed / 35));
   const qDelta = qDone - expectedQ;
 
   // Tasks pace
@@ -2893,7 +3178,7 @@ function renderStats() {
   const taskDelta = doneTasks - expectedTasks;
 
   // Daily average
-  const avgQPerDay = daysElapsed > 0 ? Math.round((qDone - 715) / daysElapsed) : 0;
+  const avgQPerDay = daysElapsed > 0 ? Math.round((qDone - 780) / daysElapsed) : 0;
 
   // CCS pace
   const ccsTotal = 30;
@@ -2961,7 +3246,7 @@ function renderStats() {
       <div class="stat-card ${qNeededDaily > avgQPerDay + 10 ? 'warn' : ''}">
         <div class="stat-card-label">Required/Day</div>
         <div class="stat-card-value ${qNeededDaily > avgQPerDay + 10 ? 'warn' : 'gold'}">${qNeededDaily}</div>
-        <div class="stat-card-sub">To finish by Jun 5</div>
+        <div class="stat-card-sub">To finish by Jun 7</div>
       </div>
       <div class="stat-card ${qDelta < 0 ? 'warn' : 'green'}">
         <div class="stat-card-label">QBank Delta</div>
@@ -3132,7 +3417,7 @@ function resetAll() {
   state = {
     tasks: {},
     qProgress: {},
-    qbank: 715,
+    qbank: 780,
     ccs: 0,
     xp: 0,
     streakDays: [],
