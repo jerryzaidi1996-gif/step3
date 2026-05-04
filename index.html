@@ -1552,6 +1552,122 @@
     font-style: italic;
     font-weight: 600;
   }
+
+  /* ===========================================
+     ANKI DAILY CARD
+     =========================================== */
+  .anki-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), var(--bg-2));
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-left: 3px solid var(--boss);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    min-height: 44px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .anki-card:active {
+    transform: scale(0.99);
+  }
+
+  .anki-card.done {
+    background: linear-gradient(135deg, rgba(74, 222, 128, 0.08), var(--bg-2));
+    border-color: rgba(74, 222, 128, 0.3);
+    border-left-color: var(--success);
+  }
+
+  .anki-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--boss), #6d28d9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+  }
+
+  .anki-card.done .anki-icon {
+    background: linear-gradient(135deg, var(--success), #15803d);
+    box-shadow: 0 0 12px var(--success-glow);
+  }
+
+  .anki-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .anki-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .anki-card.done .anki-title {
+    color: var(--text-dim);
+  }
+
+  .anki-meta {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .anki-streak-badge {
+    color: var(--boss);
+    font-weight: 700;
+  }
+
+  .anki-card.done .anki-streak-badge {
+    color: var(--success);
+  }
+
+  .anki-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: var(--bg-3);
+  }
+
+  .anki-card.done .anki-checkbox {
+    background: var(--success);
+    border-color: var(--success);
+    box-shadow: 0 0 12px var(--success-glow);
+  }
+
+  .anki-checkbox::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: solid var(--bg);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) scale(0);
+    margin-top: -2px;
+    transition: transform 0.2s;
+  }
+
+  .anki-card.done .anki-checkbox::after {
+    transform: rotate(45deg) scale(1);
+  }
 </style>
 </head>
 <body>
@@ -2079,6 +2195,7 @@ function loadState() {
         ccs: parsed.ccs ?? 0,
         xp: parsed.xp ?? 0,
         streakDays: parsed.streakDays || [],
+        ankiDays: parsed.ankiDays || [],
         completedDays: parsed.completedDays || []
       };
     }
@@ -2090,6 +2207,7 @@ function loadState() {
     ccs: 0,
     xp: 0,
     streakDays: [],
+    ankiDays: [],
     completedDays: []
   };
 }
@@ -2275,7 +2393,50 @@ function getNextCatchUpDay() {
   return days.length > 0 ? days[0] : null;
 }
 
-// Adjust progress on a Q-task. Auto-checks the task if target reached.
+// ===========================================
+// ANKI DAILY TRACKING
+// ===========================================
+function isAnkiDoneToday() {
+  return state.ankiDays.includes(getTodayKey());
+}
+
+function isAnkiDoneOnDate(dateStr) {
+  return state.ankiDays.includes(dateStr);
+}
+
+function toggleAnki(dateStr) {
+  const targetDate = dateStr || getTodayKey();
+  if (state.ankiDays.includes(targetDate)) {
+    state.ankiDays = state.ankiDays.filter(d => d !== targetDate);
+    deductXP(10);
+  } else {
+    state.ankiDays.push(targetDate);
+    awardXP(10, '🃏 Anki done');
+  }
+  updateStreak();
+  saveState();
+  rerender();
+}
+
+function calcAnkiStreak() {
+  let streak = 0;
+  let d = getCurrentDate();
+  // Today doesn't break the streak if not done yet — start from yesterday
+  if (!isAnkiDoneOnDate(dateKey(d))) {
+    d = dateAdd(d, -1);
+  }
+  while (true) {
+    const k = dateKey(d);
+    if (state.ankiDays.includes(k)) {
+      streak++;
+      d = dateAdd(d, -1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
 function adjustQProgress(taskId, delta, qTarget) {
   const current = getQProgress(taskId);
   const newVal = Math.max(0, current + delta);
@@ -2496,6 +2657,23 @@ function renderToday() {
       </div>
     `;
   }
+
+  // Anki daily card
+  const ankiDone = isAnkiDoneToday();
+  const ankiStreak = calcAnkiStreak();
+  html += `
+    <div class="anki-card ${ankiDone ? 'done' : ''}" onclick="toggleAnki()">
+      <div class="anki-icon">🃏</div>
+      <div class="anki-content">
+        <div class="anki-title">${ankiDone ? 'Anki review — done today' : 'Daily Anki review'}</div>
+        <div class="anki-meta">
+          <span class="xp-tag">+10 XP</span>
+          ${ankiStreak > 0 ? `<span class="anki-streak-badge">⚡ ${ankiStreak}-day streak</span>` : '<span>Maintain your reviews</span>'}
+        </div>
+      </div>
+      <div class="anki-checkbox"></div>
+    </div>
+  `;
 
   // Today's quests section
   const isCatchUpDay = dayPlan.tasks.some(t => t.catchUpEligible);
@@ -2858,6 +3036,21 @@ function renderStats() {
     </div>
   `;
 
+  // Anki streak card
+  const ankiStreakNow = calcAnkiStreak();
+  const ankiTotal = state.ankiDays.length;
+  html += `
+    <div class="counter-card" style="border-left: 3px solid var(--boss); border-left-style: solid;">
+      <div class="counter-header">
+        <div class="counter-title" style="color: var(--boss);">🃏 Anki Streak</div>
+        <div class="counter-progress"><em style="color: var(--boss);">${ankiStreakNow}</em> day${ankiStreakNow === 1 ? '' : 's'} · ${ankiTotal} total</div>
+      </div>
+      <div style="font-family: 'SF Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 4px;">
+        ${ankiStreakNow >= 7 ? '🔥 Strong consistency — keep it going.' : ankiStreakNow >= 3 ? 'Building momentum.' : ankiStreakNow > 0 ? 'Just started — protect the streak.' : 'Tap the Anki card on Today to start.'}
+      </div>
+    </div>
+  `;
+
   container.innerHTML = html;
 }
 
@@ -2943,6 +3136,7 @@ function resetAll() {
     ccs: 0,
     xp: 0,
     streakDays: [],
+    ankiDays: [],
     completedDays: []
   };
   saveState();
