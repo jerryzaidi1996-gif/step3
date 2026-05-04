@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=430, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>STEP III · The Ascent</title>
@@ -1841,6 +1841,174 @@
   .wp-delta.negative { color: var(--warn); }
   .wp-delta.danger { color: var(--danger); }
   .wp-delta.neutral { color: var(--text-dim); }
+
+  /* ===========================================
+     TODAY'S WATCH & APP NAV UPGRADES
+     =========================================== */
+  .watch-card {
+    margin-bottom: 18px;
+    padding: 16px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.16), transparent 35%),
+      linear-gradient(135deg, rgba(26, 33, 56, 0.98), rgba(5, 8, 16, 0.98));
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(212, 175, 55, 0.10);
+  }
+
+  .watch-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-bright), transparent);
+  }
+
+  .watch-topline {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .watch-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .watch-status {
+    font-family: 'SF Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .watch-title {
+    font-size: 22px;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .watch-title em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .watch-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.45;
+    margin-bottom: 12px;
+  }
+
+  .watch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .watch-chip {
+    background: rgba(5, 8, 16, 0.55);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    min-height: 58px;
+  }
+
+  .watch-chip-label {
+    font-family: 'SF Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
+  .watch-chip-value {
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.25;
+  }
+
+  .watch-chip-value.good { color: var(--success); }
+  .watch-chip-value.warn { color: var(--warn); }
+  .watch-chip-value.danger { color: var(--danger); }
+  .watch-chip-value.gold { color: var(--accent); }
+
+  .bottom-nav {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--safe-bottom) + 10px);
+    z-index: 900;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    padding: 6px;
+    background: rgba(5, 8, 16, 0.88);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  }
+
+  .bottom-nav-btn {
+    min-height: 48px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .bottom-nav-btn.active {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0.06));
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.35);
+  }
+
+  .backup-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .backup-row .reset-btn {
+    width: 100%;
+    margin: 0;
+  }
+
+  @media (min-width: 700px) {
+    .wrap { max-width: 520px; margin: 0 auto; }
+    .bottom-nav { left: 50%; right: auto; width: 496px; transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -1910,6 +2078,8 @@
     <div class="today-meta" id="todayMeta">—</div>
   </div>
 
+  <div id="todaysWatch"></div>
+
   <div class="quick-actions">
     <button class="qa-btn" onclick="quickQbank()">
       <div class="qa-btn-label">+ Add Qs</div>
@@ -1946,6 +2116,13 @@
 
 </div>
 
+<div class="bottom-nav">
+  <button class="bottom-nav-btn active" onclick="switchTab('today')">Today</button>
+  <button class="bottom-nav-btn" onclick="switchTab('plan')">Plan</button>
+  <button class="bottom-nav-btn" onclick="switchTab('stats')">Stats</button>
+</div>
+
+<input type="file" id="importSaveInput" accept="application/json,.json" style="display:none" onchange="importSaveFile(event)">
 <div class="toast" id="toast">+10 XP</div>
 
 <script>
@@ -1953,9 +2130,13 @@
 // CONFIG & DATA
 // ===========================================
 const TEST_DATE = new Date('2026-06-27T08:00:00');
-const TEST_DATE_2 = new Date('2026-06-30T08:00:00');
+const TEST_DATE_2 = new Date('2026-06-29T08:00:00');
 const PLAN_START = new Date('2026-05-03T00:00:00');
-const STORAGE_KEY = 'step3_tracker_v3';
+const STORAGE_KEY = 'step3_tracker_current';
+const STORAGE_VERSION = 4;
+const OLD_STORAGE_KEYS = ['step3_tracker_v3', 'step3_tracker_v2', 'step3_tracker_v1'];
+const QBANK_TOTAL = 2136;
+const QBANK_BASELINE = 780;
 
 // XP per task type
 const XP_TASK = 10;
@@ -2342,11 +2523,11 @@ const WEEKS = [
       day('2026-06-28', 'Sun', 'recovery', [
         { id: 'd_2026-06-28_1', text: 'NO STUDYING — recover fully', meta: 'Sleep, eat, non-medical activity', xp: 50 }
       ]),
-      day('2026-06-29', 'Mon', 'study', [
-        { id: 'd_2026-06-29_1', text: 'Light CCS interface review only', meta: 'Optional · 30 min max', xp: 25 }
+      day('2026-06-29', 'Mon', 'test', [
+        { id: 'd_2026-06-29_1', text: '★ DAY 2 (ACM + CCS) — ~9 hr exam', meta: 'TEST · MCQs + 13 CCS cases', xp: 1000, assessment: true }
       ]),
-      day('2026-06-30', 'Tue', 'test', [
-        { id: 'd_2026-06-30_1', text: '★ DAY 2 (ACM + CCS) — ~9 hr exam', meta: 'TEST · MCQs + 13 CCS cases', xp: 1000, assessment: true }
+      day('2026-06-30', 'Tue', 'recovery', [
+        { id: 'd_2026-06-30_1', text: 'POST-EXAM RECOVERY — no studying', meta: 'The ascent is complete', xp: 50 }
       ])
     ],
     notes: [
@@ -2358,42 +2539,145 @@ const WEEKS = [
 // ===========================================
 // STORAGE
 // ===========================================
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        tasks: parsed.tasks || {},
-        qProgress: parsed.qProgress || {},
-        qbank: parsed.qbank ?? 780,
-        ccs: parsed.ccs ?? 0,
-        xp: parsed.xp ?? 0,
-        streakDays: parsed.streakDays || [],
-        ankiDays: parsed.ankiDays || [],
-        completedDays: parsed.completedDays || []
-      };
-    }
-  } catch (e) {}
+function defaultState() {
   return {
+    version: STORAGE_VERSION,
     tasks: {},
     qProgress: {},
-    qbank: 780, // updated baseline May 3
+    extraQbank: 0,
     ccs: 0,
     xp: 0,
     streakDays: [],
     ankiDays: [],
-    completedDays: []
+    completedDays: [],
+    scores: {},
+    minimumDays: []
   };
+}
+
+function sumQProgress(progressObj) {
+  return Object.values(progressObj || {}).reduce((sum, val) => sum + (Number(val) || 0), 0);
+}
+
+function normalizeState(parsed) {
+  const base = defaultState();
+  const qProgress = parsed.qProgress || {};
+  const migratedExtraQbank = parsed.extraQbank ?? Math.max(0, (Number(parsed.qbank) || QBANK_BASELINE) - QBANK_BASELINE - sumQProgress(qProgress));
+
+  return {
+    ...base,
+    ...parsed,
+    version: STORAGE_VERSION,
+    tasks: parsed.tasks || {},
+    qProgress,
+    extraQbank: migratedExtraQbank,
+    ccs: parsed.ccs ?? 0,
+    xp: parsed.xp ?? 0,
+    streakDays: parsed.streakDays || [],
+    ankiDays: parsed.ankiDays || [],
+    completedDays: parsed.completedDays || [],
+    scores: parsed.scores || {},
+    minimumDays: parsed.minimumDays || []
+  };
+}
+
+function loadState() {
+  const keysToTry = [STORAGE_KEY, ...OLD_STORAGE_KEYS];
+
+  for (const key of keysToTry) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+
+    try {
+      const parsed = JSON.parse(raw);
+      const normalized = normalizeState(parsed);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      if (key !== STORAGE_KEY) {
+        localStorage.setItem(`${key}_migrated_backup_${Date.now()}`, raw);
+      }
+      return normalized;
+    } catch (e) {
+      localStorage.setItem(`${key}_corrupt_backup_${Date.now()}`, raw);
+      console.warn('Save file unreadable. Raw backup preserved.', e);
+    }
+  }
+
+  return defaultState();
 }
 
 function saveState() {
   try {
+    state.version = STORAGE_VERSION;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Unable to save state', e);
+    showToast('⚠ Save failed — storage may be full');
+  }
 }
 
 let state = loadState();
+
+function getQbankDone() {
+  return Math.max(0, Math.min(QBANK_TOTAL, QBANK_BASELINE + sumQProgress(state.qProgress) + (Number(state.extraQbank) || 0)));
+}
+
+function getQbankRemaining() {
+  return Math.max(0, QBANK_TOTAL - getQbankDone());
+}
+
+function exportSave() {
+  const payload = JSON.stringify({ ...state, exportedAt: new Date().toISOString() }, null, 2);
+  const blob = new Blob([payload], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `step3-ascent-save-${getTodayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('⬢ Save exported');
+}
+
+function copyBackup() {
+  const payload = JSON.stringify({ ...state, exportedAt: new Date().toISOString() });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(payload).then(() => showToast('⬢ Backup copied')).catch(() => showToast('⚠ Copy failed'));
+  } else {
+    prompt('Copy this backup text:', payload);
+  }
+}
+
+function triggerImportSave() {
+  document.getElementById('importSaveInput').click();
+}
+
+function importSaveFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      localStorage.setItem(`${STORAGE_KEY}_pre_import_backup_${Date.now()}`, JSON.stringify(state));
+      state = normalizeState(imported);
+      saveState();
+      rerender();
+      showToast('⬢ Save imported');
+    } catch (err) {
+      console.warn('Import failed', err);
+      showToast('⚠ Import failed');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+function hapticTick() {
+  if (navigator.vibrate) navigator.vibrate(10);
+}
 
 // ===========================================
 // CALCULATIONS
@@ -2508,9 +2792,10 @@ function weekProgress(week) {
 // ===========================================
 // Q-DEBT SYSTEM
 // ===========================================
-// A Q-task has qTarget. Progress tracked in state.qProgress[id].
-// Debt = sum of (qTarget - qProgress) for past Q-tasks where progress < target.
-// Only counts past (before today) since today/future tasks aren't "owed" yet.
+// Q progress is task-level. Global QBank total is derived from:
+// baseline completed before the plan + all task progress + extra manual QBank adjustments.
+// Active debt only looks back 7 days so the number stays actionable.
+// Overflow on catch-up days is credited against recent missed targets.
 
 function getQTasks() {
   const all = [];
@@ -2527,25 +2812,60 @@ function getQTasks() {
 }
 
 function getQProgress(taskId) {
-  return state.qProgress[taskId] || 0;
+  return Math.max(0, Number(state.qProgress[taskId]) || 0);
+}
+
+function getRecentDebtWindowStart() {
+  return dateKey(dateAdd(getCurrentDate(), -7));
+}
+
+function getQDebtDetails() {
+  const today = getTodayKey();
+  const recentStart = getRecentDebtWindowStart();
+  let recentTarget = 0;
+  let recentProgress = 0;
+  let archivedTarget = 0;
+  let archivedProgress = 0;
+  let catchUpCredit = 0;
+
+  getQTasks().forEach(t => {
+    const progress = getQProgress(t.id);
+    if (t.date < today && t.date >= recentStart) {
+      recentTarget += t.qTarget;
+      recentProgress += Math.min(progress, t.qTarget);
+    } else if (t.date < recentStart) {
+      archivedTarget += t.qTarget;
+      archivedProgress += Math.min(progress, t.qTarget);
+    }
+
+    if (t.catchUpEligible && t.date >= today) {
+      catchUpCredit += Math.max(0, progress - t.qTarget);
+    }
+  });
+
+  const activeDebtBeforeCredit = Math.max(0, recentTarget - recentProgress);
+  const activeDebt = Math.max(0, activeDebtBeforeCredit - catchUpCredit);
+  const archivedDebt = Math.max(0, archivedTarget - archivedProgress);
+
+  return {
+    activeDebt,
+    archivedDebt,
+    activeDebtBeforeCredit,
+    catchUpCredit,
+    recentTarget,
+    recentProgress
+  };
 }
 
 function getQDebt() {
-  // Sum of (target - progress) for past Q tasks that aren't fully completed
-  const today = getTodayKey();
-  let debt = 0;
-  getQTasks().forEach(t => {
-    if (t.date < today) {
-      const progress = getQProgress(t.id);
-      const remaining = Math.max(0, t.qTarget - progress);
-      debt += remaining;
-    }
-  });
-  return debt;
+  return getQDebtDetails().activeDebt;
+}
+
+function getArchivedQDebt() {
+  return getQDebtDetails().archivedDebt;
 }
 
 function getCatchUpEligibleDays() {
-  // Returns array of upcoming catchUpEligible days that haven't passed
   const today = getTodayKey();
   const result = [];
   WEEKS.forEach(w => {
@@ -2567,7 +2887,6 @@ function getNextCatchUpDay() {
   return days.length > 0 ? days[0] : null;
 }
 
-// Sum Q targets and progress for a given week
 function getWeekQStats(week) {
   let target = 0;
   let progress = 0;
@@ -2578,17 +2897,17 @@ function getWeekQStats(week) {
   week.dayPlans.forEach(dp => {
     dp.tasks.forEach(t => {
       if (t.qTarget && t.qTarget > 0) {
+        const taskProgress = getQProgress(t.id);
         target += t.qTarget;
-        progress += getQProgress(t.id);
+        progress += taskProgress;
         if (dp.date <= today) {
           targetThruToday += t.qTarget;
-          progressThruToday += getQProgress(t.id);
+          progressThruToday += taskProgress;
         }
       }
     });
   });
 
-  // Pacing: how are we doing vs where we should be by today
   const paceDelta = progressThruToday - targetThruToday;
   let paceStatus = 'on-pace';
   if (paceDelta < -20) paceStatus = 'behind';
@@ -2619,6 +2938,7 @@ function isAnkiDoneOnDate(dateStr) {
 }
 
 function toggleAnki(dateStr) {
+  hapticTick();
   const targetDate = dateStr || getTodayKey();
   if (state.ankiDays.includes(targetDate)) {
     state.ankiDays = state.ankiDays.filter(d => d !== targetDate);
@@ -2652,33 +2972,21 @@ function calcAnkiStreak() {
 }
 
 function adjustQProgress(taskId, delta, qTarget) {
+  hapticTick();
   const current = getQProgress(taskId);
   const newVal = Math.max(0, current + delta);
   state.qProgress[taskId] = newVal;
 
-  // Auto-update the global QBank counter (so Stats page reflects it)
-  if (delta !== 0) {
-    state.qbank = Math.max(0, Math.min(2136, state.qbank + delta));
-  }
-
-  // Award XP proportionally
   if (delta > 0) {
     awardXP(Math.floor(delta / 5), `+${delta} Qs logged`);
   } else if (delta < 0) {
     deductXP(Math.floor(Math.abs(delta) / 5));
   }
 
-  // Auto-check the task once target reached
   if (newVal >= qTarget && !state.tasks[taskId]) {
     state.tasks[taskId] = true;
-    // Award completion XP bonus (find original task XP)
-    const task = getQTasks().find(t => t.id === taskId);
-    if (task && task.xp) {
-      // Already awarded proportional, give a small completion bonus
-      awardXP(5, '✓ Task complete');
-    }
+    awardXP(5, '✓ Task complete');
   } else if (newVal < qTarget && state.tasks[taskId]) {
-    // If they decremented below target, uncheck
     state.tasks[taskId] = false;
   }
 
@@ -2812,6 +3120,59 @@ function renderBossBanner() {
   `;
 }
 
+
+function renderTodaysWatch(week, dayPlan) {
+  const qTasks = dayPlan.tasks.filter(t => t.qTarget && t.qTarget > 0);
+  const qTarget = qTasks.reduce((sum, t) => sum + t.qTarget, 0);
+  const qDone = qTasks.reduce((sum, t) => sum + getQProgress(t.id), 0);
+  const doneToday = dayPlan.tasks.filter(t => state.tasks[t.id]).length;
+  const totalToday = dayPlan.tasks.length;
+  const qDebtDetails = getQDebtDetails();
+
+  const mainQuest = qTasks[0]
+    ? `${Math.min(qDone, qTarget)} / ${qTarget} Qs`
+    : (dayPlan.tasks[0] ? dayPlan.tasks[0].text.replace(/^[★⚔]\s*/, '') : 'Clear the watch');
+
+  let threatClass = 'good';
+  let threatText = 'No active Q-debt';
+  if (qDebtDetails.activeDebt > 0) {
+    threatClass = qDebtDetails.activeDebt > 40 ? 'danger' : 'warn';
+    threatText = `${qDebtDetails.activeDebt} Qs active debt`;
+  }
+
+  const modeLabel = dayPlan.type === 'test' ? 'Final Boss' : dayPlan.type === 'assessment' ? 'Boss Day' : dayPlan.type === 'rest' ? 'Recovery Watch' : 'Study Watch';
+  const completionPct = totalToday ? Math.round((doneToday / totalToday) * 100) : 0;
+
+  return `
+    <div class="watch-card">
+      <div class="watch-topline">
+        <div class="watch-label">Today’s Watch</div>
+        <div class="watch-status">${modeLabel}</div>
+      </div>
+      <div class="watch-title">Hold the line: <em>${week.title}</em></div>
+      <div class="watch-subtitle">Do the minimum cleanly, then take bonus reps only if you still have gas. The app now credits overflow Qs against recent debt.</div>
+      <div class="watch-grid">
+        <div class="watch-chip">
+          <div class="watch-chip-label">Main Quest</div>
+          <div class="watch-chip-value gold">${mainQuest}</div>
+        </div>
+        <div class="watch-chip">
+          <div class="watch-chip-label">Watch Progress</div>
+          <div class="watch-chip-value ${completionPct >= 100 ? 'good' : ''}">${doneToday}/${totalToday} tasks · ${completionPct}%</div>
+        </div>
+        <div class="watch-chip">
+          <div class="watch-chip-label">Threat</div>
+          <div class="watch-chip-value ${threatClass}">${threatText}</div>
+        </div>
+        <div class="watch-chip">
+          <div class="watch-chip-label">Anki</div>
+          <div class="watch-chip-value ${isAnkiDoneToday() ? 'good' : 'warn'}">${isAnkiDoneToday() ? 'Ritual complete' : 'Ritual pending'}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderToday() {
   const today = getTodayKey();
   const plan = getDayPlan(today);
@@ -2819,6 +3180,7 @@ function renderToday() {
   const dateEl = document.getElementById('todayDate');
   const metaEl = document.getElementById('todayMeta');
   const tasksEl = document.getElementById('todayTasks');
+  const watchEl = document.getElementById('todaysWatch');
   const tomorrowSec = document.getElementById('tomorrowSection');
 
   const todayDate = getCurrentDate();
@@ -2829,11 +3191,13 @@ function renderToday() {
       eyebrow.textContent = '— Plan starts soon —';
       dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>`;
       metaEl.textContent = `Plan begins ${dateFmt(new Date(WEEKS[0].start), 'long')}`;
+      if (watchEl) watchEl.innerHTML = '';
       tasksEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">◆</div>The hunt begins ${dateFmt(new Date(WEEKS[0].start), 'short')}.</div>`;
     } else {
       eyebrow.textContent = '— Plan complete —';
       dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>`;
       metaEl.textContent = 'You are beyond the plan.';
+      if (watchEl) watchEl.innerHTML = '';
       tasksEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✓</div>All tasks completed.</div>`;
     }
     tomorrowSec.style.display = 'none';
@@ -2853,7 +3217,10 @@ function renderToday() {
 
   // Q-debt banner (if any debt exists)
   const qDebt = getQDebt();
+  if (watchEl) watchEl.innerHTML = renderTodaysWatch(week, dayPlan);
   let html = '';
+  const qDebtDetails = getQDebtDetails();
+  const archivedDebt = getArchivedQDebt();
   if (qDebt > 0) {
     const nextCU = getNextCatchUpDay();
     const cuText = nextCU
@@ -2866,7 +3233,7 @@ function renderToday() {
           <div class="debt-num">+${qDebt}</div>
         </div>
         <div class="debt-text">
-          You're carrying <em>${qDebt} questions</em> from prior days. ${cuText}
+          You're carrying <em>${qDebt} active questions</em> from the last 7 days. ${qDebtDetails.catchUpCredit > 0 ? `<em>${qDebtDetails.catchUpCredit} overflow Qs</em> already credited. ` : ''}${archivedDebt > 0 ? `Older archived debt: <em>${archivedDebt} Qs</em> — review only if you have extra capacity. ` : ''}${cuText}
         </div>
       </div>
     `;
@@ -3042,24 +3409,17 @@ function renderTaskHTML(t, isDay) {
 
 // Toggle a Q-task's "complete" checkbox directly (force complete or reset)
 function toggleQTaskComplete(id, qTarget, xp) {
+  hapticTick();
   const wasDone = !!state.tasks[id];
   if (wasDone) {
-    // Uncheck — reset progress
     state.tasks[id] = false;
-    state.qbank = Math.max(0, state.qbank - getQProgress(id));
     state.qProgress[id] = 0;
     deductXP(xp || 10);
   } else {
-    // Check — fill to target
     const current = getQProgress(id);
-    const remaining = qTarget - current;
-    if (remaining > 0) {
-      state.qbank = Math.min(2136, state.qbank + remaining);
-      state.qProgress[id] = qTarget;
-      awardXP(Math.floor(remaining / 5) + 5, '✓ Filled to target');
-    } else {
-      awardXP(5, '✓ Marked complete');
-    }
+    const remaining = Math.max(0, qTarget - current);
+    state.qProgress[id] = Math.max(current, qTarget);
+    awardXP(Math.floor(remaining / 5) + 5, '✓ Filled to target');
     state.tasks[id] = true;
   }
   updateStreak();
@@ -3160,15 +3520,15 @@ function renderStats() {
   const daysLeft = Math.max(0, daysUntil(TEST_DATE));
 
   // Q-bank pace: target = finish 1421 remaining over ~38 days (to leave 2 weeks buffer)
-  const qTotal = 2136;
-  const qDone = state.qbank;
-  const qRemaining = qTotal - qDone;
+  const qTotal = QBANK_TOTAL;
+  const qDone = getQbankDone();
+  const qRemaining = getQbankRemaining();
   const qFinishTarget = new Date('2026-06-07T23:59:59'); // End of elective week
   const qDaysLeft = Math.max(1, Math.ceil((qFinishTarget - today) / (1000 * 60 * 60 * 24)));
   const qNeededDaily = Math.ceil(qRemaining / qDaysLeft);
 
   // Expected progress at this point — 35 days from May 3 (start) to Jun 7 (target finish)
-  const expectedQ = Math.round(780 + (qTotal - 780) * (daysElapsed / 35));
+  const expectedQ = Math.round(QBANK_BASELINE + (qTotal - QBANK_BASELINE) * (Math.min(daysElapsed, 35) / 35));
   const qDelta = qDone - expectedQ;
 
   // Tasks pace
@@ -3178,7 +3538,7 @@ function renderStats() {
   const taskDelta = doneTasks - expectedTasks;
 
   // Daily average
-  const avgQPerDay = daysElapsed > 0 ? Math.round((qDone - 780) / daysElapsed) : 0;
+  const avgQPerDay = daysElapsed > 0 ? Math.round((qDone - QBANK_BASELINE) / daysElapsed) : 0;
 
   // CCS pace
   const ccsTotal = 30;
@@ -3216,7 +3576,7 @@ function renderStats() {
       <div class="stat-card">
         <div class="stat-card-label">Days to Day 2</div>
         <div class="stat-card-value gold">${dDay2}</div>
-        <div class="stat-card-sub">Tue Jun 30</div>
+        <div class="stat-card-sub">Mon Jun 29</div>
       </div>
     </div>
   `;
@@ -3336,6 +3696,15 @@ function renderStats() {
     </div>
   `;
 
+  html += `
+    <div class="backup-row">
+      <button class="reset-btn" onclick="exportSave()">Export Save</button>
+      <button class="reset-btn" onclick="triggerImportSave()">Import Save</button>
+      <button class="reset-btn" onclick="copyBackup()">Copy Backup</button>
+      <button class="reset-btn" onclick="markMinimumDay()">Minimum Day</button>
+    </div>
+  `;
+
   container.innerHTML = html;
 }
 
@@ -3343,6 +3712,7 @@ function renderStats() {
 // INTERACTIONS
 // ===========================================
 function toggleTask(id, xp) {
+  hapticTick();
   const wasDone = !!state.tasks[id];
   state.tasks[id] = !wasDone;
 
@@ -3363,13 +3733,15 @@ function toggleWeek(n) {
 }
 
 function adjustQbank(delta) {
-  state.qbank = Math.max(0, Math.min(2136, state.qbank + delta));
+  hapticTick();
+  state.extraQbank = Math.max(0, Math.min(QBANK_TOTAL - QBANK_BASELINE - sumQProgress(state.qProgress), (Number(state.extraQbank) || 0) + delta));
   saveState();
-  if (delta > 0) awardXP(Math.floor(delta / 5), `${delta} Qs logged`);
+  if (delta > 0) awardXP(Math.floor(delta / 5), `${delta} extra Qs logged`);
   rerender();
 }
 
 function adjustCcs(delta) {
+  hapticTick();
   state.ccs = Math.max(0, Math.min(30, state.ccs + delta));
   saveState();
   if (delta > 0) awardXP(delta * 15, `${delta} CCS case${delta > 1 ? 's' : ''} logged`);
@@ -3377,7 +3749,6 @@ function adjustCcs(delta) {
 }
 
 function quickQbank() {
-  // Try to add 25 to today's first incomplete Q-task; fall back to global counter
   const today = getTodayKey();
   const plan = getDayPlan(today);
   if (plan) {
@@ -3386,13 +3757,33 @@ function quickQbank() {
       adjustQProgress(qTask.id, 25, qTask.qTarget);
       return;
     }
+    const catchUpTask = plan.dayPlan.tasks.find(t => t.qTarget && t.catchUpEligible);
+    if (catchUpTask && getQDebt() > 0) {
+      adjustQProgress(catchUpTask.id, 25, catchUpTask.qTarget);
+      return;
+    }
   }
   adjustQbank(25);
 }
+function markMinimumDay() {
+  const today = getTodayKey();
+  const plan = getDayPlan(today);
+  if (!plan) return;
+  if (!state.minimumDays.includes(today)) state.minimumDays.push(today);
+  if (!state.streakDays.includes(today)) state.streakDays.push(today);
+  awardXP(15, 'Minimum day secured');
+  saveState();
+  rerender();
+}
+
 function quickCCS() { adjustCcs(1); }
 
 function switchTab(name) {
   document.querySelectorAll('.main-tab').forEach((t, i) => {
+    const tabName = ['today', 'plan', 'stats'][i];
+    t.classList.toggle('active', tabName === name);
+  });
+  document.querySelectorAll('.bottom-nav-btn').forEach((t, i) => {
     const tabName = ['today', 'plan', 'stats'][i];
     t.classList.toggle('active', tabName === name);
   });
@@ -3405,7 +3796,7 @@ function resetCurrentWeek() {
   const cw = getCurrentWeek();
   if (!confirm(`Reset all checkboxes for Week ${cw.n} (${cw.title})?`)) return;
   cw.dayPlans.forEach(dp => {
-    dp.tasks.forEach(t => { delete state.tasks[t.id]; });
+    dp.tasks.forEach(t => { delete state.tasks[t.id]; delete state.qProgress[t.id]; });
   });
   saveState();
   rerender();
@@ -3414,16 +3805,8 @@ function resetCurrentWeek() {
 function resetAll() {
   if (!confirm('Reset ALL data? This will clear all task progress, XP, and counters. Cannot be undone.')) return;
   if (!confirm('Are you really sure? This will delete everything.')) return;
-  state = {
-    tasks: {},
-    qProgress: {},
-    qbank: 780,
-    ccs: 0,
-    xp: 0,
-    streakDays: [],
-    ankiDays: [],
-    completedDays: []
-  };
+  localStorage.setItem(`${STORAGE_KEY}_pre_reset_backup_${Date.now()}`, JSON.stringify(state));
+  state = defaultState();
   saveState();
   rerender();
 }
