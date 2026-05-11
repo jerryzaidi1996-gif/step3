@@ -1469,7 +1469,7 @@
   }
 
   .debt-badge::before {
-    content: '⚠';
+    content: '◇';
     font-size: 10px;
   }
 
@@ -1499,7 +1499,7 @@
   }
 
   .debt-label::before {
-    content: '⚠ ';
+    content: '◇ ';
   }
 
   .debt-num {
@@ -1953,7 +1953,7 @@
 // CONFIG & DATA
 // ===========================================
 const TEST_DATE = new Date('2026-06-27T08:00:00');
-const TEST_DATE_2 = new Date('2026-06-30T08:00:00');
+const TEST_DATE_2 = new Date('2026-06-29T08:00:00');
 const PLAN_START = new Date('2026-05-03T00:00:00');
 const STORAGE_KEY = 'step3_tracker_v3';
 
@@ -2317,7 +2317,7 @@ const WEEKS = [
   // ============ WEEK 8: Jun 22 - Jun 30 (Test Week) ============
   {
     n: 8, title: "Final Boss",
-    start: '2026-06-22', end: '2026-06-30',
+    start: '2026-06-22', end: '2026-06-29',
     rotation: 'Clinic · Test Week',
     dailyQ: 'Targeted taper', weeklyQ: '—',
     dayPlans: [
@@ -2342,11 +2342,8 @@ const WEEKS = [
       day('2026-06-28', 'Sun', 'recovery', [
         { id: 'd_2026-06-28_1', text: 'NO STUDYING — recover fully', meta: 'Sleep, eat, non-medical activity', xp: 50 }
       ]),
-      day('2026-06-29', 'Mon', 'study', [
-        { id: 'd_2026-06-29_1', text: 'Light CCS interface review only', meta: 'Optional · 30 min max', xp: 25 }
-      ]),
-      day('2026-06-30', 'Tue', 'test', [
-        { id: 'd_2026-06-30_1', text: '★ DAY 2 (ACM + CCS) — ~9 hr exam', meta: 'TEST · MCQs + 13 CCS cases', xp: 1000, assessment: true }
+      day('2026-06-29', 'Mon', 'test', [
+        { id: 'd_2026-06-29_1', text: '★ DAY 2 (ACM + CCS) — ~9 hr exam', meta: 'TEST · MCQs + 13 CCS cases', xp: 1000, assessment: true }
       ])
     ],
     notes: [
@@ -3453,609 +3450,911 @@ function rerender() {
 }
 
 /* =========================================================
-   STEP 3 PATCH — UWorld sync + local date fix + schedule-aware Q goals
-   Paste near the bottom of your existing <script>, after the existing
-   functions and before the final rerender(); if possible.
+   STEP 3 PATCH — Gentle Q-debt catch-up + exam date correction
    ========================================================= */
-var STEP3_QBANK_PATCH = {
+const STEP3_CATCHUP_CONFIG = {
   uworldTotal: 2136,
-  // UWorld screenshot: 2136 total - 1331 unused = 805 completed.
-  // If the screenshot was BEFORE today's +30 questions, change this to 835.
-  doneSync: 805,
-  todaySyncDate: '2026-05-04',
-  todayQTaskId: 'd_2026-05-04_1',
-  todayQDone: 30,
-  finishBy: '2026-06-07',
   day1Date: new Date('2026-06-27T08:00:00'),
   day2Date: new Date('2026-06-29T08:00:00'),
-  migrationId: 'uworld-sync-2026-05-04-805-done-30-today-v2'
+  minimumSpreadDays: 14
 };
 
-(function applyStep3QBankPatch() {
-  const P = STEP3_QBANK_PATCH;
+// Local calendar dates, not UTC. Prevents late-night date drift on mobile.
+dateKey = function(input) {
+  const d = input instanceof Date ? input : new Date(input);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
-  // ---- Local calendar dates, not UTC. Fixes late-night May 4 -> May 5 rollover. ----
-  dateKey = function(input) {
-    const d = input instanceof Date ? input : new Date(input);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  };
+function parseDateKey(key) {
+  return new Date(`${key}T00:00:00`);
+}
 
-  parseDateKey = function(key) {
-    return new Date(`${key}T00:00:00`);
-  };
+getTodayKey = function() {
+  return dateKey(getCurrentDate());
+};
 
-  calendarDaysInclusive = function(startKey, endKey) {
-    const start = parseDateKey(startKey);
-    const end = parseDateKey(endKey);
-    return Math.max(1, Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1);
-  };
+function getRotationType(week) {
+  const r = String(week && week.rotation ? week.rotation : '');
+  if (r.includes('Test Week')) return 'test';
+  if (r.includes('Wards')) return 'wards';
+  if (r.includes('Clinic')) return 'clinic';
+  if (r.includes('Elective')) return 'elective';
+  if (r.includes('Nights')) return 'nights';
+  return 'other';
+}
 
-  getTodayKey = function() {
-    return dateKey(getCurrentDate());
-  };
+function isWeekend(dateStr) {
+  const d = parseDateKey(dateStr);
+  const day = d.getDay();
+  return day === 0 || day === 6;
+}
 
-  function taskDateFromId(taskId) {
-    const m = String(taskId || '').match(/^d_(\d{4}-\d{2}-\d{2})_/);
-    return m ? m[1] : null;
-  }
+function getBaseQTarget(task) {
+  return Number(task && task.qTarget ? task.qTarget : 0);
+}
 
-  function taskDate(t) {
-    return t.date || taskDateFromId(t.id) || getTodayKey();
-  }
+function getDailyCap(week, dateStr, task) {
+  const base = getBaseQTarget(task);
+  if (base <= 0) return 0;
 
-  function isQTask(t) {
-    return !!(t && t.qTarget && t.qTarget > 0);
-  }
+  const rotation = getRotationType(week);
+  const weekend = isWeekend(dateStr);
 
-  function getAllQTasksWithDates() {
-    const out = [];
-    WEEKS.forEach(w => {
-      w.dayPlans.forEach(dp => {
-        dp.tasks.forEach(t => {
-          if (isQTask(t)) out.push({ ...t, date: dp.date, weekN: w.n });
-        });
-      });
-    });
-    return out;
-  }
+  if (rotation === 'test') return base;
+  if (rotation === 'nights') return 20;
+  if (rotation === 'wards') return weekend ? 45 : 30;
+  if (rotation === 'clinic') return weekend ? 65 : 45;
+  if (rotation === 'elective') return weekend ? 65 : 45;
+  return base;
+}
 
-  getQTasks = function() {
-    return getAllQTasksWithDates();
-  };
+function getQProgress(taskId) {
+  return Number(state.qProgress && state.qProgress[taskId]) || 0;
+}
 
-  getQProgress = function(taskId) {
-    return Number(state.qProgress && state.qProgress[taskId]) || 0;
-  };
-
-  function getFutureQTargetAllocation() {
-    const today = getTodayKey();
-    const qRemaining = Math.max(0, P.uworldTotal - (Number(state.qbank) || 0));
-    const futureTasks = getAllQTasksWithDates().filter(t => t.date > today && t.date <= P.finishBy);
-
-    const byTask = {};
-    const byDate = {};
-    if (!futureTasks.length || qRemaining <= 0) return { byTask, byDate };
-
-    const totalWeight = futureTasks.reduce((sum, t) => sum + Number(t.qTarget || 0), 0);
-    if (totalWeight <= 0) return { byTask, byDate };
-
-    // Largest-remainder allocation keeps the total exact while preserving the plan's shape:
-    // wards lower, clinic/elective higher, weekends heavier, rest/assessment days unchanged.
-    const rows = futureTasks.map(t => {
-      const raw = qRemaining * (Number(t.qTarget) / totalWeight);
-      const floor = Math.floor(raw);
-      return { id: t.id, date: t.date, floor, frac: raw - floor };
-    });
-
-    let used = rows.reduce((sum, r) => sum + r.floor, 0);
-    let left = qRemaining - used;
-    rows.sort((a, b) => b.frac - a.frac);
-    for (let i = 0; i < rows.length && left > 0; i++, left--) {
-      rows[i].floor += 1;
-    }
-
-    rows.forEach(r => {
-      const target = Math.max(1, r.floor);
-      byTask[r.id] = target;
-      byDate[r.date] = (byDate[r.date] || 0) + target;
-    });
-
-    return { byTask, byDate };
-  }
-
-  getEffectiveQTarget = function(t) {
-    if (!isQTask(t)) return 0;
-    const d = taskDate(t);
-    const today = getTodayKey();
-
-    // Past + today stay anchored to the original 9-week plan target.
-    // Future days are recalibrated to finish UWorld by Jun 7 while preserving the plan's relative weights.
-    if (d > today && d <= P.finishBy) {
-      const allocation = getFutureQTargetAllocation();
-      return allocation.byTask[t.id] || t.qTarget;
-    }
-
-    return t.qTarget;
-  };
-
-  getTodayQStats = function() {
-    const today = getTodayKey();
-    const plan = getDayPlan(today);
-    if (!plan) return { done: 0, target: 0, delta: 0 };
-
-    let done = 0;
-    let target = 0;
-    plan.dayPlan.tasks.forEach(t => {
-      if (isQTask(t)) {
-        const contextualTask = { ...t, date: today };
-        target += getEffectiveQTarget(contextualTask);
-        done += getQProgress(t.id);
-      }
-    });
-
-    return { done, target, delta: done - target };
-  };
-
-  getNextQGoal = function() {
-    const today = getTodayKey();
-    const allocation = getFutureQTargetAllocation();
-    const dates = Object.keys(allocation.byDate).sort();
-    const nextDate = dates.find(d => d > today);
-    if (!nextDate) return { date: null, target: 0 };
-    return { date: nextDate, target: allocation.byDate[nextDate] || 0 };
-  };
-
-  getQDaysLeftToFinish = function() {
-    const today = getTodayKey();
-    const todayQ = getTodayQStats();
-    const firstKey = todayQ.target > 0 && todayQ.done < todayQ.target
-      ? today
-      : dateKey(dateAdd(getCurrentDate(), 1));
-
-    const qDates = new Set();
-    getAllQTasksWithDates().forEach(t => {
-      if (t.date >= firstKey && t.date <= P.finishBy) qDates.add(t.date);
-    });
-    return Math.max(1, qDates.size || calendarDaysInclusive(firstKey, P.finishBy));
-  };
-
-  // Debt now credits today's overflow against prior debt.
-  getQDebt = function() {
-    const today = getTodayKey();
-    let pastTarget = 0;
-    let pastDone = 0;
-
-    getAllQTasksWithDates().forEach(t => {
-      if (t.date < today) {
-        pastTarget += t.qTarget;
-        pastDone += getQProgress(t.id);
-      }
-    });
-
-    const todayQ = getTodayQStats();
-    const todayOverflow = Math.max(0, todayQ.done - todayQ.target);
-    return Math.max(0, pastTarget - pastDone - todayOverflow);
-  };
-
-  getWeekQStats = function(week) {
-    let target = 0;
-    let progress = 0;
-    let targetThruToday = 0;
-    let progressThruToday = 0;
-    const today = getTodayKey();
-
-    week.dayPlans.forEach(dp => {
+function getQTasks() {
+  const out = [];
+  WEEKS.forEach(w => {
+    w.dayPlans.forEach(dp => {
       dp.tasks.forEach(t => {
-        if (isQTask(t)) {
-          const contextualTask = { ...t, date: dp.date, weekN: week.n };
-          const effectiveTarget = getEffectiveQTarget(contextualTask);
-          const done = getQProgress(t.id);
-
-          target += effectiveTarget;
-          progress += done;
-
-          if (dp.date <= today) {
-            targetThruToday += effectiveTarget;
-            progressThruToday += done;
-          }
+        if (getBaseQTarget(t) > 0) {
+          out.push({ ...t, date: dp.date, weekN: w.n, week: w, dayType: dp.type });
         }
       });
     });
+  });
+  return out;
+}
 
-    const paceDelta = progressThruToday - targetThruToday;
-    let paceStatus = 'on-pace';
-    if (paceDelta < -20) paceStatus = 'behind';
-    else if (paceDelta < 0) paceStatus = 'slightly-behind';
-    else if (paceDelta > 20) paceStatus = 'ahead';
+function getQDebt() {
+  const today = getTodayKey();
+  let priorScheduled = 0;
+  let priorCompleted = 0;
 
-    return {
-      target,
-      progress,
-      targetThruToday,
-      progressThruToday,
-      paceDelta,
-      paceStatus,
-      pct: target > 0 ? (progress / target) * 100 : 0,
-      pacePct: targetThruToday > 0 ? (progressThruToday / targetThruToday) * 100 : 100
+  getQTasks().forEach(t => {
+    if (t.date < today) {
+      priorScheduled += getBaseQTarget(t);
+      priorCompleted += getQProgress(t.id);
+    }
+  });
+
+  return Math.max(0, priorScheduled - priorCompleted);
+}
+
+function getFutureQTasksForCatchup() {
+  const today = getTodayKey();
+  const rows = [];
+
+  WEEKS.forEach(w => {
+    w.dayPlans.forEach(dp => {
+      if (dp.date <= today) return;
+
+      dp.tasks.forEach(t => {
+        const baseTarget = getBaseQTarget(t);
+        if (baseTarget <= 0) return;
+        if (getRotationType(w) === 'test') return;
+
+        const cap = getDailyCap(w, dp.date, t);
+        if (cap <= 0) return;
+
+        rows.push({
+          ...t,
+          date: dp.date,
+          weekN: w.n,
+          week: w,
+          dayType: dp.type,
+          baseTarget,
+          cap
+        });
+      });
+    });
+  });
+
+  return rows.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function getCatchupWindowTasks() {
+  // Use all future feasible qTarget tasks, but calculate the initial
+  // increment against a 14-day minimum spread. This prevents dumping debt
+  // into the next few days while still allowing later capped days to absorb
+  // any remainder safely.
+  return getFutureQTasksForCatchup();
+}
+
+function buildCatchupPlan() {
+  const plan = {};
+  const debt = getQDebt();
+  const windowTasks = getCatchupWindowTasks();
+  const eligibleDates = [...new Set(windowTasks.map(t => t.date))];
+  let remainingDebt = debt;
+
+  windowTasks.forEach(t => {
+    const baseTarget = getBaseQTarget(t);
+    const cap = getDailyCap(t.week, t.date, t);
+    const cappedBase = Math.min(baseTarget, cap);
+
+    plan[t.id] = {
+      baseTarget,
+      adjustedTarget: cappedBase,
+      catchupAdded: 0,
+      cap
     };
+  });
+
+  if (debt <= 0 || eligibleDates.length === 0) return plan;
+
+  const spreadDenominator = eligibleDates.length >= STEP3_CATCHUP_CONFIG.minimumSpreadDays
+    ? STEP3_CATCHUP_CONFIG.minimumSpreadDays
+    : eligibleDates.length;
+  const conservativeIncrement = Math.max(1, Math.ceil(debt / spreadDenominator));
+
+  eligibleDates.forEach(dateStr => {
+    if (remainingDebt <= 0) return;
+
+    const tasksForDate = windowTasks.filter(t => t.date === dateStr);
+    tasksForDate.forEach(t => {
+      if (remainingDebt <= 0) return;
+
+      const row = plan[t.id];
+      const room = Math.max(0, row.cap - row.adjustedTarget);
+      const add = Math.min(room, conservativeIncrement, remainingDebt);
+
+      row.catchupAdded += add;
+      row.adjustedTarget += add;
+      remainingDebt -= add;
+    });
+  });
+
+  return plan;
+}
+
+function getCatchupSummary() {
+  const debt = getQDebt();
+  const plan = buildCatchupPlan();
+  const taskRows = Object.values(plan);
+  const assigned = taskRows.reduce((sum, row) => sum + Number(row.catchupAdded || 0), 0);
+  const adjustedDays = new Set();
+
+  Object.keys(plan).forEach(taskId => {
+    if (plan[taskId].catchupAdded > 0) {
+      const task = getFutureQTasksForCatchup().find(t => t.id === taskId);
+      if (task) adjustedDays.add(task.date);
+    }
+  });
+
+  return {
+    debt,
+    assigned,
+    unresolved: Math.max(0, debt - assigned),
+    adjustedDays: adjustedDays.size,
+    plan
   };
+}
 
-  adjustQProgress = function(taskId, delta, qTarget) {
-    const current = getQProgress(taskId);
-    const newVal = Math.max(0, current + delta);
-    const effectiveTarget = Number(qTarget) || getEffectiveQTarget({ id: taskId, qTarget: qTarget || 1 });
+function getAdjustedQTarget(task, week, dateStr) {
+  const baseTarget = getBaseQTarget(task);
+  if (baseTarget <= 0) return 0;
 
-    state.qProgress[taskId] = newVal;
+  const cap = getDailyCap(week, dateStr, task);
+  const plan = buildCatchupPlan();
 
-    if (delta !== 0) {
-      state.qbank = Math.max(0, Math.min(P.uworldTotal, (Number(state.qbank) || 0) + delta));
-    }
+  if (plan[task.id]) return plan[task.id].adjustedTarget;
+  return Math.min(baseTarget, cap);
+}
 
-    if (delta > 0) {
-      awardXP(Math.floor(delta / 5), `+${delta} Qs logged`);
-    } else if (delta < 0) {
-      deductXP(Math.floor(Math.abs(delta) / 5));
-    }
+function getCatchupLabel(debt) {
+  if (debt <= 0) return 'On track';
+  if (debt <= 40) return 'Small catch-up';
+  if (debt <= 100) return 'Manageable catch-up';
+  if (debt <= 200) return 'Needs planning';
+  return 'Major backlog — consider revising plan';
+}
 
-    if (newVal >= effectiveTarget && !state.tasks[taskId]) {
-      state.tasks[taskId] = true;
-      awardXP(5, '✓ Task complete');
-    } else if (newVal < effectiveTarget && state.tasks[taskId]) {
-      state.tasks[taskId] = false;
-    }
-
-    updateStreak();
-    saveState();
-    rerender();
-  };
-
-  toggleQTaskComplete = function(id, qTarget, xp) {
-    const effectiveTarget = Number(qTarget) || getEffectiveQTarget({ id, qTarget: qTarget || 1 });
-    const wasDone = !!state.tasks[id];
-
-    if (wasDone) {
-      const current = getQProgress(id);
-      state.tasks[id] = false;
-      state.qbank = Math.max(0, (Number(state.qbank) || 0) - current);
-      state.qProgress[id] = 0;
-      deductXP(xp || 10);
-    } else {
-      const current = getQProgress(id);
-      const remaining = Math.max(0, effectiveTarget - current);
-      if (remaining > 0) {
-        state.qbank = Math.min(P.uworldTotal, (Number(state.qbank) || 0) + remaining);
-        state.qProgress[id] = effectiveTarget;
-        awardXP(Math.floor(remaining / 5) + 5, '✓ Filled to target');
-      } else {
-        awardXP(5, '✓ Marked complete');
+function getTaskContext(taskId) {
+  for (const w of WEEKS) {
+    for (const dp of w.dayPlans) {
+      for (const t of dp.tasks) {
+        if (t.id === taskId) return { task: t, week: w, dayPlan: dp, date: dp.date };
       }
-      state.tasks[id] = true;
     }
+  }
+  return null;
+}
 
-    updateStreak();
-    saveState();
-    rerender();
+function getWeekQStats(week) {
+  let target = 0;
+  let progress = 0;
+  let targetThruToday = 0;
+  let progressThruToday = 0;
+  const today = getTodayKey();
+
+  week.dayPlans.forEach(dp => {
+    dp.tasks.forEach(t => {
+      if (getBaseQTarget(t) > 0) {
+        const adjustedTarget = getAdjustedQTarget(t, week, dp.date);
+        const done = getQProgress(t.id);
+
+        target += adjustedTarget;
+        progress += done;
+
+        if (dp.date <= today) {
+          targetThruToday += adjustedTarget;
+          progressThruToday += done;
+        }
+      }
+    });
+  });
+
+  const paceDelta = progressThruToday - targetThruToday;
+  let paceStatus = 'on-pace';
+  if (paceDelta < -20) paceStatus = 'behind';
+  else if (paceDelta < 0) paceStatus = 'slightly-behind';
+  else if (paceDelta > 20) paceStatus = 'ahead';
+
+  return {
+    target,
+    progress,
+    targetThruToday,
+    progressThruToday,
+    paceDelta,
+    paceStatus,
+    pct: target > 0 ? (progress / target) * 100 : 0,
+    pacePct: targetThruToday > 0 ? (progressThruToday / targetThruToday) * 100 : 100
   };
+}
 
-  getTodayPrimaryQTask = function() {
-    const plan = getDayPlan(getTodayKey());
-    if (!plan) return null;
-    const t = plan.dayPlan.tasks.find(x => isQTask(x));
-    return t ? { ...t, date: getTodayKey() } : null;
-  };
+function getAdjustedWeekTargetLabel(week) {
+  const ws = getWeekQStats(week);
+  return ws.target > 0 ? `${ws.target} Qs adjusted` : week.weeklyQ;
+}
 
-  adjustQbank = function(delta) {
-    const qTask = getTodayPrimaryQTask();
-    if (qTask) {
-      adjustQProgress(qTask.id, delta, getEffectiveQTarget(qTask));
-      return;
+function getTodayQStats() {
+  const today = getTodayKey();
+  const plan = getDayPlan(today);
+  if (!plan) return { done: 0, target: 0, delta: 0 };
+
+  let done = 0;
+  let target = 0;
+  plan.dayPlan.tasks.forEach(t => {
+    if (getBaseQTarget(t) > 0) {
+      target += getAdjustedQTarget(t, plan.week, today);
+      done += getQProgress(t.id);
     }
+  });
 
-    state.qbank = Math.max(0, Math.min(P.uworldTotal, (Number(state.qbank) || 0) + delta));
-    saveState();
+  return { done, target, delta: done - target };
+}
 
-    if (delta > 0) awardXP(Math.floor(delta / 5), `${delta} Qs logged`);
-    else if (delta < 0) deductXP(Math.floor(Math.abs(delta) / 5));
+function getNextAdjustedQGoal() {
+  const today = getTodayKey();
+  const rows = getFutureQTasksForCatchup();
+  const next = rows.find(t => t.date > today);
+  if (!next) return { date: null, target: 0 };
 
-    rerender();
-  };
+  let target = 0;
+  rows.filter(t => t.date === next.date).forEach(t => {
+    target += getAdjustedQTarget(t, t.week, t.date);
+  });
 
-  quickQbank = function() {
-    adjustQbank(25);
-  };
+  return { date: next.date, target };
+}
 
-  // Keep the next boss/test dates corrected without needing to edit existing constants.
-  getNextBoss = function() {
-    const today = getCurrentDate();
-    const bosses = [
-      { name: 'NBME Free 120', date: new Date('2026-05-16T08:00:00'), type: 'nbme' },
-      { name: 'UWSA 1', date: new Date('2026-05-30T08:00:00'), type: 'nbme' },
-      { name: 'UWSA 2 / NBME 8', date: new Date('2026-06-21T08:00:00'), type: 'nbme' },
-      { name: 'Day 1 (CFA)', date: P.day1Date, type: 'test' },
-      { name: 'Day 2 (ACM + CCS)', date: P.day2Date, type: 'test' }
-    ];
-    return bosses.find(b => b.date > today) || null;
-  };
+function renderTaskHTML(t) {
+  const isDone = !!state.tasks[t.id];
+  const ctx = getTaskContext(t.id);
+  const week = ctx ? ctx.week : getCurrentWeek();
+  const dateStr = ctx ? ctx.date : getTodayKey();
 
-  renderTaskHTML = function(t) {
-    const isDone = !!state.tasks[t.id];
+  if (getBaseQTarget(t) > 0) {
+    const baseTarget = getBaseQTarget(t);
+    const adjustedTarget = getAdjustedQTarget(t, week, dateStr);
+    const catchupPlan = buildCatchupPlan()[t.id];
+    const catchupAdded = catchupPlan ? catchupPlan.catchupAdded : 0;
+    const progress = getQProgress(t.id);
+    const pct = Math.min(100, (progress / Math.max(1, adjustedTarget)) * 100);
+    const isComplete = progress >= adjustedTarget;
+    const isPartial = progress > 0 && progress < adjustedTarget;
+    const isOver = progress > adjustedTarget;
 
-    if (isQTask(t)) {
-      const contextualTask = { ...t, date: taskDate(t) };
-      const effectiveTarget = getEffectiveQTarget(contextualTask);
-      const progress = getQProgress(t.id);
-      const pct = Math.min(100, (progress / Math.max(1, effectiveTarget)) * 100);
-      const isComplete = progress >= effectiveTarget;
-      const isPartial = progress > 0 && progress < effectiveTarget;
-      const isOver = progress > effectiveTarget;
-
-      const classes = ['task', 'q-task'];
-      if (isComplete) classes.push('complete');
-      else if (isPartial) classes.push('partial');
-      if (t.priority) classes.push('priority');
-
-      const xpTag = t.xp ? `<span class="xp-tag">+${t.xp} XP</span>` : '';
-      const numClass = isComplete && !isOver ? 'complete' : (isOver ? 'over' : '');
-      const targetNote = effectiveTarget !== t.qTarget
-        ? `<span style="color: var(--xp);">adjusted goal: ${effectiveTarget}</span>`
-        : `<span style="color: var(--text-dim);">target: ${effectiveTarget}</span>`;
-
-      return `
-        <div class="${classes.join(' ')}">
-          <div class="q-row">
-            <div class="checkbox" onclick="toggleQTaskComplete('${t.id}', ${effectiveTarget}, ${t.xp || 25})"></div>
-            <div class="task-content">
-              <div class="task-text">${t.text}</div>
-              <div class="task-meta">${xpTag}${t.meta ? `<span>${t.meta}</span>` : ''}${targetNote}</div>
-            </div>
-          </div>
-          <div class="q-stepper">
-            <button class="q-step-btn minus" onclick="adjustQProgress('${t.id}', -5, ${effectiveTarget})">−5</button>
-            <div class="q-step-display">
-              <div class="q-step-num ${numClass}"><em>${progress}</em> / ${effectiveTarget}</div>
-              <div class="q-step-label">questions done</div>
-            </div>
-            <button class="q-step-btn" onclick="adjustQProgress('${t.id}', 5, ${effectiveTarget})">+5</button>
-            <div class="q-mini-bar">
-              <div class="q-mini-bar-fill ${isComplete ? 'complete' : ''}" style="width: ${pct}%"></div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    const classes = ['task'];
-    if (isDone) classes.push('done');
+    const classes = ['task', 'q-task'];
+    if (isComplete) classes.push('complete');
+    else if (isPartial) classes.push('partial');
     if (t.priority) classes.push('priority');
-    if (t.assessment) classes.push('assessment');
 
     const xpTag = t.xp ? `<span class="xp-tag">+${t.xp} XP</span>` : '';
+    const numClass = isComplete && !isOver ? 'complete' : (isOver ? 'over' : '');
+    const targetMeta = catchupAdded > 0
+      ? `<span style="color: var(--text-dim);">target: ${baseTarget} · adjusted goal: ${adjustedTarget} · +${catchupAdded} catch-up</span>`
+      : `<span style="color: var(--text-dim);">target: ${adjustedTarget}</span>`;
 
     return `
-      <div class="${classes.join(' ')}" onclick="toggleTask('${t.id}', ${t.xp || 10})">
-        <div class="checkbox"></div>
-        <div class="task-content">
-          <div class="task-text">${t.text}</div>
-          <div class="task-meta">${xpTag}${t.meta ? `<span>${t.meta}</span>` : ''}</div>
+      <div class="${classes.join(' ')}">
+        <div class="q-row">
+          <div class="checkbox" onclick="toggleQTaskComplete('${t.id}', ${adjustedTarget}, ${t.xp || 25})"></div>
+          <div class="task-content">
+            <div class="task-text">${t.text}</div>
+            <div class="task-meta">${xpTag}${t.meta ? `<span>${t.meta}</span>` : ''}${targetMeta}</div>
+          </div>
+        </div>
+        <div class="q-stepper">
+          <button class="q-step-btn minus" onclick="adjustQProgress('${t.id}', -5, ${adjustedTarget})">−5</button>
+          <div class="q-step-display">
+            <div class="q-step-num ${numClass}"><em>${progress}</em> / ${adjustedTarget}</div>
+            <div class="q-step-label">questions done</div>
+          </div>
+          <button class="q-step-btn" onclick="adjustQProgress('${t.id}', 5, ${adjustedTarget})">+5</button>
+          <div class="q-mini-bar">
+            <div class="q-mini-bar-fill ${isComplete ? 'complete' : ''}" style="width: ${pct}%"></div>
+          </div>
         </div>
       </div>
     `;
-  };
-
-  renderStats = function() {
-    const container = document.getElementById('statsContent');
-    if (!container) return;
-
-    const today = getCurrentDate();
-    const totalDays = Math.ceil((P.day1Date - PLAN_START) / (1000 * 60 * 60 * 24));
-    const daysElapsed = Math.max(0, Math.ceil((today - PLAN_START) / (1000 * 60 * 60 * 24)));
-
-    const qTotal = P.uworldTotal;
-    const qDone = Math.max(0, Math.min(P.uworldTotal, Number(state.qbank) || 0));
-    const qRemaining = Math.max(0, qTotal - qDone);
-    const qDaysLeft = getQDaysLeftToFinish();
-    const qNeededDaily = Math.ceil(qRemaining / qDaysLeft);
-    const todayQ = getTodayQStats();
-    const nextGoal = getNextQGoal();
-
-    const expectedQ = Math.round(P.doneSync + (qTotal - P.doneSync) * (daysElapsed / 35));
-    const qDelta = qDone - expectedQ;
-
-    const totalTasks = getTotalTasks();
-    const doneTasks = getDoneTasks();
-    const expectedTasks = Math.round(totalTasks * (daysElapsed / totalDays));
-    const taskDelta = doneTasks - expectedTasks;
-
-    const avgQPerDay = daysElapsed > 0 ? Math.round((qDone - P.doneSync + P.todayQDone) / Math.max(1, daysElapsed)) : 0;
-
-    const ccsTotal = 30;
-    const ccsDone = Number(state.ccs) || 0;
-
-    let paceClass = 'green';
-    let paceStatus = 'On Pace';
-    if (todayQ.delta < -5 || qDelta < -50 || taskDelta < -10) {
-      paceClass = 'behind';
-      paceStatus = 'Behind';
-    }
-    if (qDelta < -150 || taskDelta < -30) {
-      paceClass = 'danger';
-      paceStatus = 'Falling Behind';
-    }
-    if (todayQ.delta >= 0 && qDelta >= -20) {
-      paceClass = 'green';
-      paceStatus = todayQ.delta > 0 ? 'Ahead Today' : 'On Pace';
-    }
-
-    const dDay1 = daysUntil(P.day1Date);
-    const dDay2 = daysUntil(P.day2Date);
-
-    let html = '';
-
-    html += `
-      <div class="stats-grid">
-        <div class="stat-card gold">
-          <div class="stat-card-label">Days to Day 1</div>
-          <div class="stat-card-value gold">${dDay1}</div>
-          <div class="stat-card-sub">Sat Jun 27</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Days to Day 2</div>
-          <div class="stat-card-value gold">${dDay2}</div>
-          <div class="stat-card-sub">Mon Jun 29</div>
-        </div>
-      </div>
-    `;
-
-    html += `
-      <div class="pace-gauge">
-        <div class="pace-row">
-          <div class="pace-label">⬢ Overall Pace</div>
-          <div class="pace-value">${paceStatus}</div>
-        </div>
-        <div class="pace-bar">
-          <div class="pace-fill ${paceClass}" style="width: ${Math.min(100, Math.max(5, daysElapsed/totalDays*100))}%"></div>
-        </div>
-        <div class="pace-marker">Day ${daysElapsed} of ${totalDays} · ${Math.round(daysElapsed/totalDays*100)}% through plan</div>
-      </div>
-    `;
-
-    html += `
-      <div class="stats-grid">
-        <div class="stat-card ${todayQ.delta >= 0 ? 'green' : 'warn'}">
-          <div class="stat-card-label">Today Qs</div>
-          <div class="stat-card-value ${todayQ.delta >= 0 ? 'green' : 'warn'}">${todayQ.done}/${todayQ.target}</div>
-          <div class="stat-card-sub">${todayQ.delta >= 0 ? '+' : ''}${todayQ.delta} vs today</div>
-        </div>
-        <div class="stat-card ${nextGoal.target > 0 ? '' : 'green'}">
-          <div class="stat-card-label">Next Q-Day Goal</div>
-          <div class="stat-card-value gold">${nextGoal.target || 0}</div>
-          <div class="stat-card-sub">${nextGoal.date ? dateFmt(parseDateKey(nextGoal.date), 'short') : 'No future Qs'}</div>
-        </div>
-        <div class="stat-card xp">
-          <div class="stat-card-label">Avg Qs/Day</div>
-          <div class="stat-card-value xp-color">${avgQPerDay}</div>
-          <div class="stat-card-sub">Since recalibration</div>
-        </div>
-        <div class="stat-card ${qNeededDaily > avgQPerDay + 10 ? 'warn' : ''}">
-          <div class="stat-card-label">Weighted Avg Needed</div>
-          <div class="stat-card-value ${qNeededDaily > avgQPerDay + 10 ? 'warn' : 'gold'}">${qNeededDaily}</div>
-          <div class="stat-card-sub">Across remaining Q-days</div>
-        </div>
-        <div class="stat-card ${qDelta < 0 ? 'warn' : 'green'}">
-          <div class="stat-card-label">QBank Delta</div>
-          <div class="stat-card-value ${qDelta < 0 ? 'warn' : 'green'}">${qDelta >= 0 ? '+' : ''}${qDelta}</div>
-          <div class="stat-card-sub">vs. recalibrated line</div>
-        </div>
-        <div class="stat-card ${taskDelta < 0 ? 'warn' : 'green'}">
-          <div class="stat-card-label">Tasks Delta</div>
-          <div class="stat-card-value ${taskDelta < 0 ? 'warn' : 'green'}">${taskDelta >= 0 ? '+' : ''}${taskDelta}</div>
-          <div class="stat-card-sub">vs. expected</div>
-        </div>
-      </div>
-    `;
-
-    const qPct = Math.min(100, (qDone / qTotal) * 100);
-    const debtForBadge = getQDebt();
-    const debtBadgeHtml = debtForBadge > 0 ? `<span class="debt-badge">${debtForBadge} debt</span>` : '';
-    html += `
-      <div class="counter-card">
-        <div class="counter-header">
-          <div class="counter-title">⬢ UWorld QBank${debtBadgeHtml}</div>
-          <div class="counter-progress"><em>${qDone}</em> / ${qTotal} (${Math.round(qPct)}%)</div>
-        </div>
-        <div class="counter-bar">
-          <div class="counter-bar-fill qb" style="width: ${qPct}%"></div>
-        </div>
-        <div style="font-family: 'SF Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 10px;">
-          ${qRemaining} unused left · finish target ${dateFmt(parseDateKey(P.finishBy), 'short')}. Future daily goals are weighted to your 9-week plan, not flattened.
-        </div>
-        <div class="counter-buttons">
-          <button class="counter-btn minus" onclick="adjustQbank(-10)">−10</button>
-          <button class="counter-btn" onclick="adjustQbank(10)">+10</button>
-          <button class="counter-btn" onclick="adjustQbank(25)">+25</button>
-          <button class="counter-btn" onclick="adjustQbank(40)">+40</button>
-          <button class="counter-btn" onclick="adjustQbank(50)">+50</button>
-        </div>
-      </div>
-    `;
-
-    const ccsPct = Math.min(100, (ccsDone / ccsTotal) * 100);
-    html += `
-      <div class="counter-card">
-        <div class="counter-header">
-          <div class="counter-title">⚔ CCS Cases</div>
-          <div class="counter-progress"><em>${ccsDone}</em> / ${ccsTotal} (${Math.round(ccsPct)}%)</div>
-        </div>
-        <div class="counter-bar">
-          <div class="counter-bar-fill ccs" style="width: ${ccsPct}%"></div>
-        </div>
-        <div class="counter-buttons">
-          <button class="counter-btn minus" onclick="adjustCcs(-1)">−1</button>
-          <button class="counter-btn" onclick="adjustCcs(1)">+1</button>
-          <button class="counter-btn" onclick="adjustCcs(2)">+2</button>
-          <button class="counter-btn" onclick="adjustCcs(3)">+3</button>
-          <button class="counter-btn" onclick="adjustCcs(5)">+5</button>
-        </div>
-      </div>
-    `;
-
-    html += `
-      <div class="stats-grid" style="margin-top: 16px;">
-        <div class="stat-card xp">
-          <div class="stat-card-label">Total XP</div>
-          <div class="stat-card-value xp-color">${state.xp.toLocaleString()}</div>
-          <div class="stat-card-sub">Lifetime earned</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">Plan Progress</div>
-          <div class="stat-card-value gold">${getProgressPct()}%</div>
-          <div class="stat-card-sub">${doneTasks}/${totalTasks} tasks</div>
-        </div>
-      </div>
-    `;
-
-    const ankiStreakNow = calcAnkiStreak();
-    const ankiTotal = state.ankiDays.length;
-    html += `
-      <div class="counter-card" style="border-left: 3px solid var(--boss); border-left-style: solid;">
-        <div class="counter-header">
-          <div class="counter-title" style="color: var(--boss);">🃏 Anki Streak</div>
-          <div class="counter-progress"><em style="color: var(--boss);">${ankiStreakNow}</em> day${ankiStreakNow === 1 ? '' : 's'} · ${ankiTotal} total</div>
-        </div>
-        <div style="font-family: 'SF Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 4px;">
-          ${ankiStreakNow >= 7 ? '🔥 Strong consistency — keep it going.' : ankiStreakNow >= 3 ? 'Building momentum.' : ankiStreakNow > 0 ? 'Just started — protect the streak.' : 'Tap the Anki card on Today to start.'}
-        </div>
-      </div>
-    `;
-
-    container.innerHTML = html;
-  };
-
-  function applyManualUWorldSync() {
-    state.migrations = state.migrations || [];
-    if (state.migrations.includes(P.migrationId)) return;
-
-    state.qbank = P.doneSync;
-    state.qProgress = state.qProgress || {};
-    state.tasks = state.tasks || {};
-
-    state.qProgress[P.todayQTaskId] = P.todayQDone;
-    state.tasks[P.todayQTaskId] = true;
-
-    if (!state.streakDays) state.streakDays = [];
-    if (!state.streakDays.includes(P.todaySyncDate)) state.streakDays.push(P.todaySyncDate);
-
-    state.migrations.push(P.migrationId);
-    saveState();
   }
 
-  applyManualUWorldSync();
+  const classes = ['task'];
+  if (isDone) classes.push('done');
+  if (t.priority) classes.push('priority');
+  if (t.assessment) classes.push('assessment');
+
+  const xpTag = t.xp ? `<span class="xp-tag">+${t.xp} XP</span>` : '';
+
+  return `
+    <div class="${classes.join(' ')}" onclick="toggleTask('${t.id}', ${t.xp || 10})">
+      <div class="checkbox"></div>
+      <div class="task-content">
+        <div class="task-text">${t.text}</div>
+        <div class="task-meta">${xpTag}${t.meta ? `<span>${t.meta}</span>` : ''}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDebtBannerHTML() {
+  const summary = getCatchupSummary();
+  if (summary.debt <= 0) return '';
+
+  const label = getCatchupLabel(summary.debt);
+  const assignedText = summary.assigned > 0
+    ? `Redistributing <em>${summary.assigned} questions</em> over ${summary.adjustedDays} upcoming feasible study days.`
+    : 'No safe catch-up was added to the remaining plan.';
+  const unresolvedText = summary.unresolved > 0
+    ? ` <em>${summary.unresolved} questions</em> remain unassigned because of daily caps.`
+    : '';
+
+  return `
+    <div class="debt-banner">
+      <div class="debt-banner-header">
+        <div class="debt-label">${label}</div>
+        <div class="debt-num">${summary.debt}</div>
+      </div>
+      <div class="debt-text">
+        You have <em>${summary.debt} questions</em> from prior scheduled UWorld targets. ${assignedText}${unresolvedText}
+      </div>
+    </div>
+  `;
+}
+
+function renderToday() {
+  const today = getTodayKey();
+  const plan = getDayPlan(today);
+  const eyebrow = document.getElementById('todayEyebrow');
+  const dateEl = document.getElementById('todayDate');
+  const metaEl = document.getElementById('todayMeta');
+  const tasksEl = document.getElementById('todayTasks');
+  const tomorrowSec = document.getElementById('tomorrowSection');
+
+  const todayDate = getCurrentDate();
+
+  if (!plan) {
+    if (todayDate < new Date(WEEKS[0].start)) {
+      eyebrow.textContent = '— Plan starts soon —';
+      dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>`;
+      metaEl.textContent = `Plan begins ${dateFmt(new Date(WEEKS[0].start), 'long')}`;
+      tasksEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">◆</div>The hunt begins ${dateFmt(new Date(WEEKS[0].start), 'short')}.</div>`;
+    } else {
+      eyebrow.textContent = '— Plan complete —';
+      dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>`;
+      metaEl.textContent = 'You are beyond the plan.';
+      tasksEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✓</div>All tasks completed.</div>`;
+    }
+    tomorrowSec.style.display = 'none';
+    return;
+  }
+
+  const week = plan.week;
+  const dayPlan = plan.dayPlan;
+
+  eyebrow.textContent = `Week ${week.n} · ${week.title}`;
+  dateEl.innerHTML = `<em>${dateFmt(todayDate, 'weekday')}</em>, ${dateFmt(todayDate, 'short')}`;
+  metaEl.textContent = `${week.rotation} · ${dayPlan.type === 'rest' ? 'Rest day' : dayPlan.type === 'assessment' ? 'Assessment day' : dayPlan.type === 'test' ? 'TEST DAY' : 'Study day'}`;
+
+  const totalToday = dayPlan.tasks.length;
+  const doneToday = dayPlan.tasks.filter(t => state.tasks[t.id]).length;
+
+  let html = renderDebtBannerHTML();
+
+  const ankiDone = isAnkiDoneToday();
+  const ankiStreak = calcAnkiStreak();
+  html += `
+    <div class="anki-card ${ankiDone ? 'done' : ''}" onclick="toggleAnki()">
+      <div class="anki-icon">🃏</div>
+      <div class="anki-content">
+        <div class="anki-title">${ankiDone ? 'Anki review — done today' : 'Daily Anki review'}</div>
+        <div class="anki-meta">
+          <span class="xp-tag">+10 XP</span>
+          ${ankiStreak > 0 ? `<span class="anki-streak-badge">⚡ ${ankiStreak}-day streak</span>` : '<span>Maintain your reviews</span>'}
+        </div>
+      </div>
+      <div class="anki-checkbox"></div>
+    </div>
+  `;
+
+  const wkStats = getWeekQStats(week);
+  if (wkStats.target > 0) {
+    const fillPct = Math.min(100, wkStats.pct);
+    const paceMarkerPct = wkStats.target > 0
+      ? Math.min(100, (wkStats.targetThruToday / wkStats.target) * 100)
+      : 0;
+
+    let statusLabel = 'On Pace';
+    if (wkStats.paceStatus === 'ahead') statusLabel = 'Ahead';
+    else if (wkStats.paceStatus === 'slightly-behind') statusLabel = 'Catch Up';
+    else if (wkStats.paceStatus === 'behind') statusLabel = 'Behind';
+
+    let deltaClass = 'neutral';
+    let deltaText = '';
+    if (wkStats.paceDelta > 0) {
+      deltaClass = 'positive';
+      deltaText = `+${wkStats.paceDelta} ahead of pace`;
+    } else if (wkStats.paceDelta < -20) {
+      deltaClass = 'danger';
+      deltaText = `${wkStats.paceDelta} behind pace`;
+    } else if (wkStats.paceDelta < 0) {
+      deltaClass = 'negative';
+      deltaText = `${wkStats.paceDelta} behind pace`;
+    } else {
+      deltaText = 'Right on pace';
+    }
+
+    html += `
+      <div class="weekly-progress ${wkStats.paceStatus}">
+        <div class="wp-header">
+          <div class="wp-label">Week ${week.n} · QBank</div>
+          <div class="wp-status ${wkStats.paceStatus}">${statusLabel}</div>
+        </div>
+        <div class="wp-numbers">
+          <div class="wp-progress-num"><em>${wkStats.progress}</em> / ${wkStats.target} Qs</div>
+          <div class="wp-target-num">${Math.round(fillPct)}% of week</div>
+        </div>
+        <div class="wp-bar-container">
+          <div class="wp-bar">
+            <div class="wp-bar-fill ${wkStats.paceStatus}" style="width: ${fillPct}%"></div>
+          </div>
+          ${paceMarkerPct > 0 && paceMarkerPct < 100 ? `<div class="wp-pace-marker" style="left: ${paceMarkerPct}%"></div>` : ''}
+        </div>
+        <div class="wp-footer">
+          <span>Pace target: ${wkStats.targetThruToday} by today</span>
+          <span class="wp-delta ${deltaClass}">${deltaText}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  const hasCatchupToday = dayPlan.tasks.some(t => {
+    const row = buildCatchupPlan()[t.id];
+    return row && row.catchupAdded > 0;
+  });
+  const catchUpBadge = hasCatchupToday ? '<span class="catch-up-indicator">Catch-Up Added</span>' : '';
+  html += `<div class="section-label">⚔ Today's Quests${catchUpBadge} <span class="count">${doneToday}/${totalToday}</span></div>`;
+
+  dayPlan.tasks.forEach(t => {
+    html += renderTaskHTML(t);
+  });
+
+  tasksEl.innerHTML = html;
+
+  const tomorrow = dateAdd(todayDate, 1);
+  const tomorrowPlan = getDayPlan(dateKey(tomorrow));
+  const tomorrowEl = document.getElementById('tomorrowTasks');
+
+  if (tomorrowPlan) {
+    let twHtml = `<div style="margin-bottom: 8px; color: var(--text); font-size: 13px;"><strong>${dateFmt(tomorrow, 'weekday')}, ${dateFmt(tomorrow, 'short')}</strong> <span style="color: var(--text-muted); font-family: 'SF Mono', monospace; font-size: 9px; letter-spacing: 0.5px;">· ${tomorrowPlan.dayPlan.type.toUpperCase()}</span></div>`;
+    tomorrowPlan.dayPlan.tasks.forEach(t => {
+      const targetBit = getBaseQTarget(t) > 0 ? ` · target ${getAdjustedQTarget(t, tomorrowPlan.week, tomorrowPlan.dayPlan.date)} Qs` : '';
+      twHtml += `<div class="tomorrow-preview-task">• ${t.text}${targetBit}${t.meta ? ` <span style="color: var(--text-muted); font-size: 11px;">(${t.meta})</span>` : ''}</div>`;
+    });
+    tomorrowEl.innerHTML = twHtml;
+    tomorrowSec.style.display = 'block';
+  } else {
+    tomorrowSec.style.display = 'none';
+  }
+}
+
+function renderPlan() {
+  const container = document.getElementById('planContent');
+  const todayKey = getTodayKey();
+  const currentWeek = getCurrentWeek();
+
+  let html = '';
+  WEEKS.forEach(w => {
+    const wp = weekProgress(w);
+    const ws = getWeekQStats(w);
+    const isCurrent = w.n === currentWeek.n;
+    const isPast = w.end < todayKey;
+    const isCompleted = wp.pct === 100;
+
+    const classes = ['week-card'];
+    if (isCurrent) classes.push('current', 'expanded');
+    if (isPast && !isCurrent) classes.push('past');
+    if (isCompleted) classes.push('completed');
+
+    html += `
+      <div class="${classes.join(' ')}" id="week-${w.n}">
+        <div class="week-card-header" onclick="toggleWeek(${w.n})">
+          <div class="week-num-badge"><span class="num-text">${w.n}</span></div>
+          <div class="week-card-info">
+            <div class="week-card-title">Week ${w.n} · <em>${w.title}</em></div>
+            <div class="week-card-dates">${dateFmt(new Date(w.start + 'T00:00:00'), 'short')} – ${dateFmt(new Date(w.end + 'T00:00:00'), 'short')} · ${w.rotation}</div>
+          </div>
+          <div class="week-card-progress">
+            <div class="week-card-pct">${wp.pct}%</div>
+            <div class="week-card-pct-label">${wp.done}/${wp.total}</div>
+          </div>
+        </div>
+        <div class="week-card-body">
+          <div class="week-pills">
+            <span class="week-pill gold">${w.dailyQ} Qs/day</span>
+            <span class="week-pill">${getAdjustedWeekTargetLabel(w)}</span>
+          </div>
+
+          ${ws.target === 0 ? '' : `
+            <div class="weekly-progress ${ws.paceStatus}" style="margin: 12px 0;">
+              <div class="wp-numbers">
+                <div class="wp-progress-num"><em>${ws.progress}</em> / ${ws.target} Qs</div>
+                <div class="wp-target-num">${Math.round(Math.min(100, ws.pct))}%</div>
+              </div>
+              <div class="wp-bar-container">
+                <div class="wp-bar">
+                  <div class="wp-bar-fill ${ws.paceStatus}" style="width: ${Math.min(100, ws.pct)}%"></div>
+                </div>
+              </div>
+            </div>
+          `}
+
+          ${(w.notes || []).map(n => `
+            <div class="note-box ${n.type || ''}">
+              <div class="note-label">${n.label}</div>
+              <div class="note-text">${n.text}</div>
+            </div>
+          `).join('')}
+
+          <div class="sub-section">
+            <div class="sub-section-label">Daily Quests</div>
+            ${w.dayPlans.map(dp => `
+              <div class="day-group">
+                <div class="day-group-header">
+                  <div class="day-group-name">${dp.label} · ${dp.type}</div>
+                  <div class="day-group-date">${dateFmt(new Date(dp.date + 'T00:00:00'), 'short')}</div>
+                </div>
+                ${dp.tasks.map(t => renderTaskHTML(t)).join('')}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function renderStats() {
+  const container = document.getElementById('statsContent');
+
+  const today = getCurrentDate();
+  const totalDays = Math.ceil((STEP3_CATCHUP_CONFIG.day1Date - PLAN_START) / (1000 * 60 * 60 * 24));
+  const daysElapsed = Math.max(0, Math.ceil((today - PLAN_START) / (1000 * 60 * 60 * 24)));
+
+  const qTotal = STEP3_CATCHUP_CONFIG.uworldTotal;
+  const qDone = state.qbank;
+  const qRemaining = Math.max(0, qTotal - qDone);
+  const todayQ = getTodayQStats();
+  const nextGoal = getNextAdjustedQGoal();
+  const summary = getCatchupSummary();
+
+  const totalTasks = getTotalTasks();
+  const doneTasks = getDoneTasks();
+  const expectedTasks = Math.round(totalTasks * (daysElapsed / totalDays));
+  const taskDelta = doneTasks - expectedTasks;
+
+  const avgQPerDay = daysElapsed > 0 ? Math.round((qDone - 780) / daysElapsed) : 0;
+
+  const ccsTotal = 30;
+  const ccsDone = state.ccs;
+
+  let paceClass = 'green';
+  let paceStatus = 'On Pace';
+  if (summary.debt > 40 || todayQ.delta < -10) {
+    paceClass = 'behind';
+    paceStatus = getCatchupLabel(summary.debt);
+  }
+  if (summary.debt > 200) {
+    paceClass = 'danger';
+    paceStatus = 'Major backlog';
+  }
+  if (summary.debt === 0 && todayQ.delta >= 0) {
+    paceClass = 'green';
+    paceStatus = todayQ.delta > 0 ? 'Ahead Today' : 'On Pace';
+  }
+
+  const dDay1 = daysUntil(STEP3_CATCHUP_CONFIG.day1Date);
+  const dDay2 = daysUntil(STEP3_CATCHUP_CONFIG.day2Date);
+
+  let html = '';
+
+  html += `
+    <div class="stats-grid">
+      <div class="stat-card gold">
+        <div class="stat-card-label">Days to Day 1</div>
+        <div class="stat-card-value gold">${dDay1}</div>
+        <div class="stat-card-sub">Sat Jun 27</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Days to Day 2</div>
+        <div class="stat-card-value gold">${dDay2}</div>
+        <div class="stat-card-sub">Mon Jun 29</div>
+      </div>
+    </div>
+  `;
+
+  html += `
+    <div class="pace-gauge">
+      <div class="pace-row">
+        <div class="pace-label">⬢ Overall Pace</div>
+        <div class="pace-value">${paceStatus}</div>
+      </div>
+      <div class="pace-bar">
+        <div class="pace-fill ${paceClass}" style="width: ${Math.min(100, Math.max(5, daysElapsed/totalDays*100))}%"></div>
+      </div>
+      <div class="pace-marker">Day ${daysElapsed} of ${totalDays} · ${Math.round(daysElapsed/totalDays*100)}% through plan</div>
+    </div>
+  `;
+
+  html += `
+    <div class="stats-grid">
+      <div class="stat-card ${todayQ.delta >= 0 ? 'green' : 'warn'}">
+        <div class="stat-card-label">Today Qs</div>
+        <div class="stat-card-value ${todayQ.delta >= 0 ? 'green' : 'warn'}">${todayQ.done}/${todayQ.target}</div>
+        <div class="stat-card-sub">${todayQ.delta >= 0 ? '+' : ''}${todayQ.delta} vs adjusted goal</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Next Q-Day Goal</div>
+        <div class="stat-card-value gold">${nextGoal.target || 0}</div>
+        <div class="stat-card-sub">${nextGoal.date ? dateFmt(parseDateKey(nextGoal.date), 'short') : 'No future Qs'}</div>
+      </div>
+      <div class="stat-card ${summary.debt > 0 ? 'warn' : 'green'}">
+        <div class="stat-card-label">Q-Debt</div>
+        <div class="stat-card-value ${summary.debt > 0 ? 'warn' : 'green'}">${summary.debt}</div>
+        <div class="stat-card-sub">${getCatchupLabel(summary.debt)}</div>
+      </div>
+      <div class="stat-card ${summary.unresolved > 0 ? 'warn' : 'green'}">
+        <div class="stat-card-label">Assigned Catch-Up</div>
+        <div class="stat-card-value ${summary.unresolved > 0 ? 'warn' : 'green'}">${summary.assigned}</div>
+        <div class="stat-card-sub">${summary.unresolved} unresolved</div>
+      </div>
+      <div class="stat-card xp">
+        <div class="stat-card-label">Avg Qs/Day</div>
+        <div class="stat-card-value xp-color">${avgQPerDay}</div>
+        <div class="stat-card-sub">Since plan start</div>
+      </div>
+      <div class="stat-card ${taskDelta < 0 ? 'warn' : 'green'}">
+        <div class="stat-card-label">Tasks Delta</div>
+        <div class="stat-card-value ${taskDelta < 0 ? 'warn' : 'green'}">${taskDelta >= 0 ? '+' : ''}${taskDelta}</div>
+        <div class="stat-card-sub">vs. expected</div>
+      </div>
+    </div>
+  `;
+
+  const qPct = Math.min(100, (qDone / qTotal) * 100);
+  const debtBadgeHtml = summary.debt > 0 ? `<span class="debt-badge">${summary.debt} debt</span>` : '';
+  html += `
+    <div class="counter-card">
+      <div class="counter-header">
+        <div class="counter-title">⬢ UWorld QBank${debtBadgeHtml}</div>
+        <div class="counter-progress"><em>${qDone}</em> / ${qTotal} (${Math.round(qPct)}%)</div>
+      </div>
+      <div class="counter-bar">
+        <div class="counter-bar-fill qb" style="width: ${qPct}%"></div>
+      </div>
+      <div style="font-family: 'SF Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 10px;">
+        ${qRemaining} unused left. Catch-up is based on scheduled qProgress, not this global counter.
+      </div>
+      <div class="counter-buttons">
+        <button class="counter-btn minus" onclick="adjustQbank(-10)">−10</button>
+        <button class="counter-btn" onclick="adjustQbank(10)">+10</button>
+        <button class="counter-btn" onclick="adjustQbank(25)">+25</button>
+        <button class="counter-btn" onclick="adjustQbank(40)">+40</button>
+        <button class="counter-btn" onclick="adjustQbank(50)">+50</button>
+      </div>
+    </div>
+  `;
+
+  const ccsPct = Math.min(100, (ccsDone / ccsTotal) * 100);
+  html += `
+    <div class="counter-card">
+      <div class="counter-header">
+        <div class="counter-title">⚔ CCS Cases</div>
+        <div class="counter-progress"><em>${ccsDone}</em> / ${ccsTotal} (${Math.round(ccsPct)}%)</div>
+      </div>
+      <div class="counter-bar">
+        <div class="counter-bar-fill ccs" style="width: ${ccsPct}%"></div>
+      </div>
+      <div class="counter-buttons">
+        <button class="counter-btn minus" onclick="adjustCcs(-1)">−1</button>
+        <button class="counter-btn" onclick="adjustCcs(1)">+1</button>
+        <button class="counter-btn" onclick="adjustCcs(2)">+2</button>
+        <button class="counter-btn" onclick="adjustCcs(3)">+3</button>
+        <button class="counter-btn" onclick="adjustCcs(5)">+5</button>
+      </div>
+    </div>
+  `;
+
+  html += `
+    <div class="stats-grid" style="margin-top: 16px;">
+      <div class="stat-card xp">
+        <div class="stat-card-label">Total XP</div>
+        <div class="stat-card-value xp-color">${state.xp.toLocaleString()}</div>
+        <div class="stat-card-sub">Lifetime earned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Plan Progress</div>
+        <div class="stat-card-value gold">${getProgressPct()}%</div>
+        <div class="stat-card-sub">${doneTasks}/${totalTasks} tasks</div>
+      </div>
+    </div>
+  `;
+
+  const ankiStreakNow = calcAnkiStreak();
+  const ankiTotal = state.ankiDays.length;
+  html += `
+    <div class="counter-card" style="border-left: 3px solid var(--boss); border-left-style: solid;">
+      <div class="counter-header">
+        <div class="counter-title" style="color: var(--boss);">🃏 Anki Streak</div>
+        <div class="counter-progress"><em style="color: var(--boss);">${ankiStreakNow}</em> day${ankiStreakNow === 1 ? '' : 's'} · ${ankiTotal} total</div>
+      </div>
+      <div style="font-family: 'SF Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 4px;">
+        ${ankiStreakNow >= 7 ? '🔥 Strong consistency — keep it going.' : ankiStreakNow >= 3 ? 'Building momentum.' : ankiStreakNow > 0 ? 'Just started — protect the streak.' : 'Tap the Anki card on Today to start.'}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function adjustQProgress(taskId, delta, qTarget) {
+  const ctx = getTaskContext(taskId);
+  const adjustedTarget = ctx ? getAdjustedQTarget(ctx.task, ctx.week, ctx.date) : Number(qTarget || 0);
+  const current = getQProgress(taskId);
+  const newVal = Math.max(0, current + delta);
+  state.qProgress[taskId] = newVal;
+
+  if (delta !== 0) {
+    state.qbank = Math.max(0, Math.min(STEP3_CATCHUP_CONFIG.uworldTotal, state.qbank + delta));
+  }
+
+  if (delta > 0) {
+    awardXP(Math.floor(delta / 5), `+${delta} Qs logged`);
+  } else if (delta < 0) {
+    deductXP(Math.floor(Math.abs(delta) / 5));
+  }
+
+  if (newVal >= adjustedTarget && !state.tasks[taskId]) {
+    state.tasks[taskId] = true;
+    awardXP(5, '✓ Task complete');
+  } else if (newVal < adjustedTarget && state.tasks[taskId]) {
+    state.tasks[taskId] = false;
+  }
+
+  updateStreak();
   saveState();
   rerender();
-})();
+}
+
+function toggleQTaskComplete(id, qTarget, xp) {
+  const ctx = getTaskContext(id);
+  const adjustedTarget = ctx ? getAdjustedQTarget(ctx.task, ctx.week, ctx.date) : Number(qTarget || 0);
+  const wasDone = !!state.tasks[id];
+
+  if (wasDone) {
+    state.tasks[id] = false;
+    state.qbank = Math.max(0, state.qbank - getQProgress(id));
+    state.qProgress[id] = 0;
+    deductXP(xp || 10);
+  } else {
+    const current = getQProgress(id);
+    const remaining = adjustedTarget - current;
+    if (remaining > 0) {
+      state.qbank = Math.min(STEP3_CATCHUP_CONFIG.uworldTotal, state.qbank + remaining);
+      state.qProgress[id] = adjustedTarget;
+      awardXP(Math.floor(remaining / 5) + 5, '✓ Filled to target');
+    } else {
+      awardXP(5, '✓ Marked complete');
+    }
+    state.tasks[id] = true;
+  }
+  updateStreak();
+  saveState();
+  rerender();
+}
+
+function adjustQbank(delta) {
+  const today = getTodayKey();
+  const plan = getDayPlan(today);
+  if (plan) {
+    const qTask = plan.dayPlan.tasks.find(t => getBaseQTarget(t) > 0);
+    if (qTask) {
+      adjustQProgress(qTask.id, delta, getAdjustedQTarget(qTask, plan.week, today));
+      return;
+    }
+  }
+
+  state.qbank = Math.max(0, Math.min(STEP3_CATCHUP_CONFIG.uworldTotal, state.qbank + delta));
+  saveState();
+  if (delta > 0) awardXP(Math.floor(delta / 5), `${delta} Qs logged`);
+  else if (delta < 0) deductXP(Math.floor(Math.abs(delta) / 5));
+  rerender();
+}
+
+function quickQbank() {
+  const today = getTodayKey();
+  const plan = getDayPlan(today);
+  if (plan) {
+    const qTask = plan.dayPlan.tasks.find(t => getBaseQTarget(t) > 0 && getQProgress(t.id) < getAdjustedQTarget(t, plan.week, today));
+    if (qTask) {
+      adjustQProgress(qTask.id, 25, getAdjustedQTarget(qTask, plan.week, today));
+      return;
+    }
+  }
+  adjustQbank(25);
+}
+
+getNextBoss = function() {
+  const today = getCurrentDate();
+  const bosses = [
+    { name: 'NBME Free 120', date: new Date('2026-05-16T08:00:00'), type: 'nbme' },
+    { name: 'UWSA 1', date: new Date('2026-05-30T08:00:00'), type: 'nbme' },
+    { name: 'UWSA 2 / NBME 8', date: new Date('2026-06-21T08:00:00'), type: 'nbme' },
+    { name: 'Day 1 (CFA)', date: STEP3_CATCHUP_CONFIG.day1Date, type: 'test' },
+    { name: 'Day 2 (ACM + CCS)', date: STEP3_CATCHUP_CONFIG.day2Date, type: 'test' }
+  ];
+  for (const b of bosses) {
+    if (b.date > today) return b;
+  }
+  return null;
+};
 
 
 // Init
