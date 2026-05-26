@@ -1898,7 +1898,7 @@
 <!-- ===== MAIN TABS ===== -->
 <div class="main-tabs">
   <button class="main-tab active" onclick="switchTab('today')">Today</button>
-  <button class="main-tab" onclick="switchTab('plan')">Final Plan</button>
+  <button class="main-tab" onclick="switchTab('plan')">Calendar Plan</button>
   <button class="main-tab" onclick="switchTab('stats')">Stats</button>
 </div>
 
@@ -2923,43 +2923,51 @@ const PLAN_DAYS = [
 const WEEKS = [
   {
     "n": 1,
-    "title": "Clinic \u00b7 Strong Start",
+    "title": "Short Week · Clinic Launch",
     "start": "2026-05-26",
-    "end": "2026-06-01",
-    "rotation": "Clinic",
-    "summary": "320 UWorld \u00b7 9 CCS"
+    "end": "2026-05-30",
+    "rotation": "Clinic · Tue–Sat",
+    "summary": "235 UWorld · 6 CCS · shortened first week"
   },
   {
     "n": 2,
-    "title": "Elective \u00b7 Productive, Not Fantasy",
-    "start": "2026-06-02",
-    "end": "2026-06-08",
-    "rotation": "Elective",
-    "summary": "300 UWorld \u00b7 9 CCS"
+    "title": "Calendar Week 2 · Clinic to Elective",
+    "start": "2026-05-31",
+    "end": "2026-06-06",
+    "rotation": "Clinic → Elective",
+    "summary": "305 UWorld · 9 CCS"
   },
   {
     "n": 3,
-    "title": "Nights \u00b7 Survival Mode",
-    "start": "2026-06-09",
-    "end": "2026-06-15",
-    "rotation": "Nights",
-    "summary": "190 UWorld \u00b7 5 CCS"
+    "title": "Calendar Week 3 · Elective to Nights",
+    "start": "2026-06-07",
+    "end": "2026-06-13",
+    "rotation": "Elective → Nights",
+    "summary": "205 UWorld · 5 CCS"
   },
   {
     "n": 4,
-    "title": "Finish UWorld \u00b7 Pivot to CCS",
-    "start": "2026-06-16",
-    "end": "2026-06-22",
-    "rotation": "Clinic",
-    "summary": "211 UWorld by Jun 20 \u00b7 21 CCS"
+    "title": "Calendar Week 4 · Finish UWorld",
+    "start": "2026-06-14",
+    "end": "2026-06-20",
+    "rotation": "Nights → Final Clinic",
+    "summary": "276 UWorld · 16 CCS · UWorld done Jun 20"
   },
   {
     "n": 5,
-    "title": "Taper \u00b7 CCS Polish \u00b7 Exams",
-    "start": "2026-06-23",
+    "title": "Calendar Week 5 · Taper + Day 1",
+    "start": "2026-06-21",
+    "end": "2026-06-27",
+    "rotation": "Final Clinic → Exam Week",
+    "summary": "0 new UWorld · 21 CCS/reviews · Day 1"
+  },
+  {
+    "n": 6,
+    "title": "Calendar Week 6 · Recovery + Day 2",
+    "start": "2026-06-28",
     "end": "2026-06-29",
-    "rotation": "Clinic + Exams",
-    "summary": "0 new UWorld \u00b7 16 CCS/reviews"
+    "rotation": "Exam Week",
+    "summary": "0 new UWorld · 3 CCS polish · Day 2"
   }
 ];
 
@@ -3018,7 +3026,7 @@ function clamp(n, min, max) {
 // ===========================================
 function defaultState() {
   return {
-    version: 1,
+    version: 2,
     tasks: {},
     qProgress: {},
     ccsProgress: {},
@@ -3436,8 +3444,8 @@ function renderToday() {
     <div class="anki-card ${ankiDone ? 'done' : ''}" onclick="toggleAnki('${today}')">
       <div class="anki-icon">🃏</div>
       <div class="anki-content">
-        <div class="anki-title">${ankiDone ? 'Daily review — done' : 'Daily micro-review'}</div>
-        <div class="anki-meta"><span class="xp-tag">+10 XP</span><span>${calcAnkiStreak()}-day streak</span></div>
+        <div class="anki-title">${ankiDone ? 'Anki review — checked today' : 'Check off Anki review'}</div>
+        <div class="anki-meta"><span class="xp-tag">+10 XP</span><span>Anki streak: ${calcAnkiStreak()} day${calcAnkiStreak() === 1 ? '' : 's'}</span></div>
       </div>
       <div class="anki-checkbox"></div>
     </div>`;
@@ -3612,12 +3620,13 @@ function renderPlan() {
 
 function weekNoteHTML(n) {
   const notes = {
-    1: ['Clinic start', 'This is the momentum week: 45 most weekdays, 55 on weekend days, one lighter 30-Q day on June 1. Aggressive but not fake.'],
-    2: ['Elective ceiling', 'Weekdays stay at 40, not 60. The weekend absorbs the heavier lift.'],
-    3: ['Nights rule', 'This is survival mode: mostly 25-Q chunks, one 50-Q off-day, very light CCS. Sleep is a study tool here.'],
+    1: ['Short calendar week', 'The app now groups weeks Sunday–Saturday. Because the plan starts Tuesday, Week 1 is intentionally shortened to Tue–Sat instead of pretending it is a full week.'],
+    2: ['Clinic to elective', 'This week crosses rotations because calendar weeks start Sunday. Weekend/off-day capacity absorbs catch-up before nights.'],
+    3: ['Elective to nights', 'The second half of the week is survival mode. Keep nights to small chunks and do not let catch-up destroy sleep.'],
     4: ['Finish then pivot', 'First-pass UWorld ends June 20. After that, CCS and weak-area review beat incorrects.'],
-    5: ['Taper', 'No new first-pass UWorld. June 28 is recovery plus CCS polish, not a panic grind.']
-  }[n];
+    5: ['Taper + Day 1', 'No new first-pass UWorld. Optional practice test only if UWorld is done and CCS is on pace.'],
+    6: ['Recovery + Day 2', 'June 28 is recovery plus CCS polish, not a panic grind. June 29 is the final boss.']
+  }[n] || ['Calendar week', 'Sunday-start calendar grouping.'];
   return `<div class="note-box info"><div class="note-label">${notes[0]}</div><div class="note-text">${notes[1]}</div></div>`;
 }
 
@@ -3683,6 +3692,7 @@ function renderStats() {
 
     <div class="stats-grid" style="margin-top:16px;">
       <div class="stat-card xp"><div class="stat-card-label">Total XP</div><div class="stat-card-value xp-color">${(state.xp || 0).toLocaleString()}</div><div class="stat-card-sub">lifetime earned</div></div>
+      <div class="stat-card green"><div class="stat-card-label">Anki Streak</div><div class="stat-card-value green">${calcAnkiStreak()}</div><div class="stat-card-sub">tap the Anki card on Today to check it</div></div>
       <div class="stat-card"><div class="stat-card-label">Audit</div><div class="stat-card-value gold">OK</div><div class="stat-card-sub">UWorld ${scheduledUWorldTotal()} · CCS ${scheduledCcsTotal()}</div></div>
     </div>
   `;
